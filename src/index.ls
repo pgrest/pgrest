@@ -14,7 +14,7 @@ walk = (model, meta) ->
 compile = (model, field) ->
     {$query, $from, $and, $} = field ? {}
     switch
-    | $from? => """
+    | $from? => let from-table = qq "#{$from}s", model-table = qq "#{model}s" => """
         (SELECT COALESCE(ARRAY_TO_JSON(ARRAY_AGG(_)), '[]') FROM (SELECT * FROM #from-table
             WHERE #{ qq "_#model" } = #model-table."_id" AND #{
                 switch
@@ -22,7 +22,7 @@ compile = (model, field) ->
                 | _                         => true
             }
         ) AS _)
-    """ where from-table = qq "#{$from}s", model-table = qq "#{model}s"
+    """
     | $? => cond model, $
     | typeof field is \object => cond model, field
     | _ => field
@@ -47,8 +47,8 @@ test = (model, key, expr) -> switch typeof expr
             | \$gt =>
                 res = evaluate model, ref
                 "(#key > #res)"
-            | \$ =>
-                "#key = #model-table.#{ qq ref }" where model-table = qq "#{model}s"
+            | \$ => let model-table = qq "#{model}s"
+                "#key = #model-table.#{ qq ref }"
             | _ => throw "Unknown operator: #op"
     | \undefined => [true]
 
@@ -56,7 +56,7 @@ evaluate = (model, ref) -> switch typeof ref
     | <[ number boolean ]> => "#ref"
     | \string => q ref
     | \object => for op, v of ref => switch op
-        | \$ => "#model-table.#{ qq v }" where model-table = qq "#{model}s"
+        | \$ => let model-table = qq "#{model}s" => "#model-table.#{ qq v }" 
         | \$ago => "'now'::timestamptz - #{ q "#v ms" }::interval"
         | _ => continue
 
