@@ -45,8 +45,7 @@ describe 'db', -> ``it``
     ``setTimeout`` = (fn, ms=0) -> deferred.push [fn, ms + (serial++ * 0.001)]
 
     {STRING, TEXT, DATE, BOOLEAN, INTEGER}:Sequelize = plv8x_require "sequelize"
-    sql = new Sequelize null, null, null do
-        dialect: "plv8"
+    sql = new Sequelize null, null, null { dialect: "plv8", -logging }
 
     SystemModel = do
         field: { type: STRING, +primaryKey }
