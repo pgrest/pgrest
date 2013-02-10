@@ -26,18 +26,18 @@ describe 'db', -> ``it``
     done!
   .. 'test data', (done) ->
     err, res <- conn.query """
-    DROP TABLE IF EXISTS plv8x_test;
-    CREATE TABLE plv8x_test (
+    DROP TABLE IF EXISTS pgrest_test;
+    CREATE TABLE pgrest_test (
         field text not null,
         value text not null,
         last_update timestamp
     );
-    INSERT INTO plv8x_test (field, value, last_update) values('plv8x_version', '0.0.1', NOW());
+    INSERT INTO pgrest_test (field, value, last_update) values('pgrest_version', '0.0.1', NOW());
     """
     expect(err).to.be.a('null');
     done!
   .. 'plv8x_require', (done) ->
-    err, res <- conn.query """select plv8x_eval(lscompile($1, '{"bare": true}'))::plv8x_json as ret""", ["""
+    err, res <- conn.query """select plv8x.eval(plv8x.lscompile($1, '{"bare": true}'))::plv8x.json as ret""", ["""
     ``console`` = { log: -> plv8.elog(WARNING, ...arguments) }
 
     serial = 0
@@ -52,11 +52,11 @@ describe 'db', -> ``it``
         value: STRING
         last_update: DATE
 
-    System = sql.define 'plv8x_test' SystemModel, { +freezeTableName }
+    System = sql.define 'pgrest_test' SystemModel, { +freezeTableName }
 
     rv = null
     do
-        (entry) <- System.find('plv8x_version').on "success"
+        (entry) <- System.find('pgrest_version').on "success"
         rv := entry
 
     doit = (-> return unless deferred.length; deferred.shift!0!; doit!)
@@ -67,6 +67,6 @@ describe 'db', -> ``it``
     expect(err).to.be.a('null');
     {ret} = res.rows.0
     ret = JSON.parse ret
-    expect ret?field .to.equal "plv8x_version"
+    expect ret?field .to.equal "pgrest_version"
     expect ret?value .to.equal "0.0.1"
     done!
