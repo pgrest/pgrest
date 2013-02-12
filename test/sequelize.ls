@@ -23,6 +23,7 @@ describe 'db', -> ``it``
     <- plv8x.import-bundle conn, \LiveScript, './node_modules/LiveScript/package.json'
     <- plv8x.import-bundle conn, \plv8x, './node_modules/plv8x/package.json'
     <- plv8x.import-bundle conn, \sequelize, './node_modules/sequelize/package.json'
+    <- plv8x.import-bundle conn, \pgrest, './package.json'
     done!
   .. 'test data', (done) ->
     err, res <- conn.query """
@@ -36,14 +37,16 @@ describe 'db', -> ``it``
     """
     expect(err).to.be.a('null');
     done!
-  .. 'plv8x_require', (done) ->
+  .. 'pgrest boot', (done) ->
+    err, res <- conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
+    expect(err).to.be.a('null');
+    err, res <- conn.query "select pgrest_boot() as ret"
+    expect(err).to.be.a('null');
+    expect res.rows.0.ret .to.equal true
+    done!
+  .. 'sequelize test', (done) ->
     err, res <- conn.query """select plv8x.eval(plv8x.lscompile($1, '{"bare": true}'))::plv8x.json as ret""", ["""
-    ``console`` = { log: -> plv8.elog(WARNING, ...arguments) }
-
-    serial = 0
-    deferred = []
-    ``setTimeout`` = (fn, ms=0) -> deferred.push [fn, ms + (serial++ * 0.001)]
-
+    plv8x_require "pgrest" .boot!
     {STRING, TEXT, DATE, BOOLEAN, INTEGER}:Sequelize = plv8x_require "sequelize"
     sql = new Sequelize null, null, null { dialect: "plv8", -logging }
 
@@ -59,8 +62,7 @@ describe 'db', -> ``it``
         (entry) <- System.find('pgrest_version').on "success"
         rv := entry
 
-    doit = (-> return unless deferred.length; deferred.shift!0!; doit!)
-    doit!
+    pgprocess.next!
 
     JSON.stringify rv
     """]

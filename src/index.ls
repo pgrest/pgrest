@@ -14,7 +14,8 @@ walk = (model, meta) ->
 compile = (model, field) ->
     {$query, $from, $and, $} = field ? {}
     switch
-    | $from? => let from-table = qq "#{$from}s", model-table = qq "#{model}s" => """
+    | $from? => let from-table = qq "#{$from}s", model-table = qq "#{model}s"
+        """
         (SELECT COALESCE(ARRAY_TO_JSON(ARRAY_AGG(_)), '[]') FROM (SELECT * FROM #from-table
             WHERE #{ qq "_#model" } = #model-table."_id" AND #{
                 switch
@@ -22,7 +23,7 @@ compile = (model, field) ->
                 | _                         => true
             }
         ) AS _)
-    """
+        """
     | $? => cond model, $
     | typeof field is \object => cond model, field
     | _ => field
@@ -56,7 +57,8 @@ evaluate = (model, ref) -> switch typeof ref
     | <[ number boolean ]> => "#ref"
     | \string => q ref
     | \object => for op, v of ref => switch op
-        | \$ => let model-table = qq "#{model}s" => "#model-table.#{ qq v }" 
+        | \$ => let model-table = qq "#{model}s"
+            "#model-table.#{ qq v }" 
         | \$ago => "'now'::timestamptz - #{ q "#v ms" }::interval"
         | _ => continue
 
@@ -81,3 +83,15 @@ export function pgrest_select({collection, l = 30, sk = 0, q, c, s, fo})
         paging: { count, l, sk }
         entries: plv8.execute "#query limit $1 offset $2" [l, sk]
         query: cond
+
+export function boot()
+    serial = 0
+    deferred = []
+    ``console`` = { log: -> plv8.elog(WARNING, ...arguments) }
+    ``setTimeout`` = (fn, ms=0) -> deferred.push [fn, ms + (serial++ * 0.001)]
+    ``pgprocess`` = do
+        nextTick: (fn) -> setTimeout fn
+        next: ->
+            doit = (-> return unless deferred.length; deferred.shift!0!; doit!)
+            doit!
+    true
