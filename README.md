@@ -1,6 +1,8 @@
 pgrest
 ======
 
+[![Build Status](https://travis-ci.org/clkao/pgrest.png?branch=travis-ci)](https://travis-ci.org/clkao/pgrest)
+
 WARNING: this is work in progress and everything is likely to change!
 
 # PgREST is...
