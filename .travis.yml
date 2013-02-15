@@ -1,0 +1,19 @@
+before_script:
+  - "sudo pip install pgxnclient"
+  - "sudo apt-get install libv8-dev"
+  - "sudo pgxn install plv8"
+  - "psql -c 'create database test' -U postgres"
+
+script:
+  - "TESTDBNAME=test ./node_modules/.bin/mocha test"
+
+notifications:
+  email:
+    - clkao@clkao.org
+
+language: node_js
+
+node_js:
+  - 0.8
+  - 0.9
+
