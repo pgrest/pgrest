@@ -14,8 +14,8 @@
     "url": "git://github.com/clkao/pgrest.git"
   },
   "scripts": {
-    "test": "env PATH=\"./node_modules/.bin:$PATH\" mocha",
-    "prepublish": "env PATH=\"./node_modules/.bin:$PATH\" lsc -cj package.ls &&\nenv PATH=\"./node_modules/.bin:$PATH\" lsc -bc -o lib src &&\nln -sf ../../plv8x/bundled_modules/util node_modules/sequelize/node_modules/ &&\nln -sf ../../plv8x/bundled_modules/events node_modules/sequelize/node_modules/"
+    "test": "ln -sf ../../plv8x/bundled_modules/util node_modules/sequelize/node_modules/ &&\nln -sf ../../plv8x/bundled_modules/events node_modules/sequelize/node_modules/ &&\nenv PATH=\"./node_modules/.bin:$PATH\" mocha",
+    "prepublish": "env PATH=\"./node_modules/.bin:$PATH\" lsc -cj package.ls &&\nenv PATH=\"./node_modules/.bin:$PATH\" lsc -bc -o lib src"
   },
   "engines": {
     "node": "*"
