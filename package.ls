@@ -13,8 +13,9 @@ scripts:
   test: 'env PATH="./node_modules/.bin:$PATH" mocha'
   prepublish: """
     env PATH="./node_modules/.bin:$PATH" lsc -cj package.ls &&
-    lsc -bc -o lib src &&
-    ln -sf ../../plv8x/bundled_modules/{util,events} node_modules/sequelize/node_modules/
+    env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src &&
+    ln -sf ../../plv8x/bundled_modules/util node_modules/sequelize/node_modules/ &&
+    ln -sf ../../plv8x/bundled_modules/events node_modules/sequelize/node_modules/
   """
 engines: {node: '*'}
 dependencies:
