@@ -6,7 +6,9 @@ app = express!
 plx <- (require \./).new conString
 
 rows <- plx.query """
-  SELECT t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema = 'public';
+  SELECT t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema NOT IN (
+    'information_schema', 'pg_catalog', 'plv8x'
+  );
 """
 cols = for {tbl} in rows => mount-model tbl
 
