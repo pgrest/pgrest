@@ -1,3 +1,18 @@
+exports.new = (conString, cb) ->
+  plx <- (require \plv8x).new conString
+  <- plx.eval -> plv8x_require "pgrest" .boot!
+  <- plx.eval -> console.log "Hello world"
+  plx.select = (param, cb) ->
+    err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_select($1) as ret" [JSON.stringify param]
+    throw err if err
+    cb? ret
+  plx.query = (...args) ->
+    cb = args.pop!
+    err, { rows } <- @conn.query ...args
+    throw err if err
+    cb? rows
+  cb? plx
+
 q = -> """
     '#{ "#it".replace /'/g "''" }'
 """
