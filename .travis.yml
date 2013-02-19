@@ -8,8 +8,7 @@ script:
   - "TESTDBNAME=test npm run test"
 
 notifications:
-  email:
-    - clkao@clkao.org
+  irc: "irc.freenode.org#pgrest"
 
 language: node_js
 
