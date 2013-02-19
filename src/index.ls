@@ -16,7 +16,8 @@ exports.new = (conString, cb) ->
     err, { rows } <- @conn.query ...args
     throw err if err
     cb? rows
-  cb? plx
+  return cb plx if cb
+  return plx.conn.end!
 
 q = -> """
     '#{ "#it".replace /'/g "''" }'
