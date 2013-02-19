@@ -3,8 +3,10 @@ exports.new = (conString, cb) ->
   plx <- plv8x.new conString
   <- plx.import-bundle \pgrest require.resolve(\../package.json)
   <- plx.eval -> plv8x_require \pgrest .boot!
-  <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
-  <- plx.conn.query plv8x._mk_func \pgrest_select {} \plv8x.json plv8x.plv8x-lift "pgrest", "pgrest_select"
+  err <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
+  throw err if err
+  err <- plx.conn.query plv8x._mk_func \pgrest_select {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", "pgrest_select"
+  throw err if err
   plx.select = (param, cb) ->
     err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_select($1) as ret" [JSON.stringify param]
     throw err if err
