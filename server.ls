@@ -13,8 +13,6 @@ mount-model = (name) ->
   app.get "/collections/#name", (req, resp) ->
     param = req.query{ l, sk, c, s, q } <<< { collection: name }
     try
-      for p in <[l sk c]> | param[p]? => param[p] = parseInt param[p]
-      for p in <[q s]>    | param[p]? => param[p] = JSON.parse param[p]
       body <- plx.select param
       resp.setHeader 'Content-Type' 'application/json; charset=UTF-8'
       resp.end body

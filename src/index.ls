@@ -1,7 +1,10 @@
+require! plv8x
 exports.new = (conString, cb) ->
-  plx <- (require \plv8x).new conString
-  <- plx.eval -> plv8x_require "pgrest" .boot!
-  <- plx.eval -> console.log "Hello world"
+  plx <- plv8x.new conString
+  <- plx.import-bundle \pgrest require.resolve(\../package.json)
+  <- plx.eval -> plv8x_require \pgrest .boot!
+  <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
+  <- plx.conn.query plv8x._mk_func \pgrest_select {} \plv8x.json plv8x.plv8x-lift "pgrest", "pgrest_select"
   plx.select = (param, cb) ->
     err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_select($1) as ret" [JSON.stringify param]
     throw err if err
@@ -85,7 +88,10 @@ order-by = (fields) ->
         | _  => throw "unknown order type: #q #k"
     sort * ", "
 
-export function pgrest_select({collection, l = 30, sk = 0, q, c, s, fo})
+export function pgrest_select(param)
+    for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
+    for p in <[q s]>    | typeof param[p] is \string => param[p] = JSON.parse param[p]
+    {collection, l = 30, sk = 0, q, c, s, fo} = param
     cond = compile collection, q if q
     query = "SELECT * from #collection"
 
