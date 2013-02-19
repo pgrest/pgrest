@@ -19,7 +19,7 @@ scripts:
   """
   prepublish: """
     env PATH="./node_modules/.bin:$PATH" lsc -cj package.ls &&
-    env PATH="./node_modules/.bin:$PATH" lsc -bc bin
+    env PATH="./node_modules/.bin:$PATH" lsc -bc bin &&
     env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src
   """
 engines: {node: '*'}
