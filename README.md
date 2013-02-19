@@ -13,9 +13,9 @@ WARNING: this is work in progress and everything is likely to change!
 * capable of loading Node.js modules
 * compatible with MongoLab's REST API
 
-# Install plv8js exntesion for postgresql
+# Install plv8js extension for postgresql
 
-Note: requires postgresql 9.1 or later.  9.0 will be supoprted soon.
+Note: Requires postgresql 9.1 or later.  9.0 will be supported soon.
 
 ```
 # for older distros: sudo add-apt-repository ppa:martinkl/ppa
@@ -38,7 +38,7 @@ npm run prepublish
 MYDB=$ select pgrest_select('{"collection": "sometable", "l": 10}');
 ```
 
-The parametger is similar to  mongolab api for listing documents:
+The parameter is similar to MongoLab's REST API for listing documents:
 https://support.mongolab.com/entries/20433053-rest-api-for-mongodb
 
 # Web server support
