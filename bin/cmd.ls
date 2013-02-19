@@ -1,9 +1,15 @@
-require! {express, optimist, plv8x}
-conString = process.argv.2 or process.env.PGRESTCONN or process.env.TESTDBNAME
-port = 3000
-app = express!
+``#!/usr/bin/env node``
+require! {optimist, plv8x}
+{argv} = optimist
+conString = argv.db or process.env.PGRESTCONN or process.env.TESTDBNAME
 
-plx <- (require \./).new conString
+plx <- (require \../).new conString
+
+process.exit 0 if argv.boot
+port = argv.port ? 3000
+express = try require \express 
+throw "express required for starting server" unless express
+app = express!
 
 rows <- plx.query """
   SELECT t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema NOT IN (

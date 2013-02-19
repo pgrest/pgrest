@@ -6,6 +6,8 @@ name: 'pgrest'
 description: 'enable REST in postgres'
 version: '0.0.1'
 main: \lib/index.js
+bin:
+  pgrest: 'bin/cmd.js'
 repository:
   type: 'git'
   url: 'git://github.com/clkao/pgrest.git'
@@ -17,6 +19,7 @@ scripts:
   """
   prepublish: """
     env PATH="./node_modules/.bin:$PATH" lsc -cj package.ls &&
+    env PATH="./node_modules/.bin:$PATH" lsc -bc bin
     env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src
   """
 engines: {node: '*'}
@@ -28,4 +31,5 @@ devDependencies:
   mocha: \*
   chai: \*
   LiveScript: \1.1.1
+  express: \3.1.x
 optionalDependencies: {}
