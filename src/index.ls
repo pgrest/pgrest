@@ -106,6 +106,7 @@ export function select(param)
     return { count } if c
 
     query += " ORDER BY " + order-by s if s
+    return (plv8.execute "#query limit $1 offset $2" [l, sk])?0 if fo
     do
         paging: { count, l, sk }
         entries: plv8.execute "#query limit $1 offset $2" [l, sk]

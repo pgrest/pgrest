@@ -28,7 +28,7 @@ console.log "Serving `#conString` on http://localhost:#port/collections"
 
 function mount-model (name)
   app.get "/collections/#name", (req, resp) ->
-    param = req.query{ l, sk, c, s, q } <<< { collection: name }
+    param = req.query{ l, sk, c, s, q, fo } <<< { collection: name }
     try
       body <- plx.select param
       resp.setHeader 'Content-Type' 'application/json; charset=UTF-8'
