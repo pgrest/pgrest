@@ -2,7 +2,8 @@ before_script:
   - "sudo pip install pgxnclient"
   - "sudo apt-get install libv8-dev"
   - "sudo pgxn install plv8"
-  - "psql -c 'create database test' -U postgres"
+  - "dropdb --if-exists -U postgres test"
+  - "createdb -U postgres test"
 
 script:
   - "TESTDBNAME=test npm run test"
