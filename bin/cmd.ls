@@ -10,6 +10,7 @@ port = argv.port ? 3000
 express = try require \express 
 throw "express required for starting server" unless express
 app = express!
+require! cors
 
 rows <- plx.query """
   SELECT t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema NOT IN (
@@ -18,7 +19,7 @@ rows <- plx.query """
 """
 cols = for {tbl} in rows => mount-model tbl
 
-app.get '/collections', (req, res) ->
+app.all '/collections', cors!, (req, res) ->
   res.setHeader 'Content-Type', 'application/json; charset=UTF-8'
   res.end JSON.stringify cols
 
@@ -27,7 +28,7 @@ console.log "Available collections:\n#{ cols * ' ' }"
 console.log "Serving `#conString` on http://localhost:#port/collections"
 
 function mount-model (name)
-  app.get "/collections/#name", (req, resp) ->
+  app.all "/collections/#name", cors!, (req, resp) ->
     param = req.query{ l, sk, c, s, q, fo } <<< { collection: name }
     resp.setHeader 'Content-Type' 'application/json; charset=UTF-8'
     body <- plx.select param, _, -> resp.end JSON.stringify { error: "#it" }

@@ -32,4 +32,5 @@ devDependencies:
   chai: \*
   LiveScript: \1.1.1
   express: \3.1.x
+  cors: \0.0.4
 optionalDependencies: {}
