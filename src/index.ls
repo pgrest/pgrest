@@ -10,9 +10,9 @@ exports.new = (conString, cb) ->
   throw err if err
   err <- plx.conn.query plv8x._mk_func \pgrest_select {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", "select"
   throw err if err
-  plx.select = (param, cb) ->
+  plx.select = (param, cb, onError) ->
     err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_select($1) as ret" [JSON.stringify param]
-    throw err if err
+    return onError?(err) if err
     cb? ret
   plx.query = (...args) ->
     cb = args.pop!
