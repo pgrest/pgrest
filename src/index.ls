@@ -72,6 +72,10 @@ test = (model, key, expr) -> switch typeof expr
             | \$gt =>
                 res = evaluate model, ref
                 "(#key > #res)"
+            | \$contains =>
+                ref = [ref] unless Array.isArray ref
+                res = q "{#{ref.join \,}}"
+                "(#key @> #res)"
             | \$ => let model-table = qq "#{model}s"
                 "#key = #model-table.#{ qq ref }"
             | _ => throw "Unknown operator: #op"
