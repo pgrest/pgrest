@@ -11,6 +11,9 @@ express = try require \express
 throw "express required for starting server" unless express
 app = express!
 require! cors
+require! gzippo
+
+app.use gzippo.compress!
 
 rows <- plx.query """
   SELECT t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema NOT IN (

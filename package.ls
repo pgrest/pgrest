@@ -33,4 +33,5 @@ devDependencies:
   LiveScript: \1.1.1
   express: \3.1.x
   cors: \0.0.4
+  gzippo: \0.2.x
 optionalDependencies: {}
