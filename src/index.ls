@@ -9,6 +9,7 @@ exports.new = (conString, cb) ->
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
   throw err if err
   err <- plx.conn.query plv8x._mk_func \pgrest_select {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", "select"
+  err <- plx.conn.query plv8x._mk_func \pgrest_upsert {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", "upsert"
   throw err if err
   plx.select = (param, cb, onError) ->
     err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_select($1) as ret" [JSON.stringify param]
@@ -16,7 +17,7 @@ exports.new = (conString, cb) ->
     cb? ret
   plx.query = (...args) ->
     cb = args.pop!
-    err, { rows } <- @conn.query ...args
+    err, { rows }? <- @conn.query ...args
     throw err if err
     cb? rows
   return cb plx if cb
@@ -103,7 +104,7 @@ export function select(param)
     for p in <[q s]>    | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, l = 30, sk = 0, q, c, s, fo} = param
     cond = compile collection, q if q
-    query = "SELECT * from #collection"
+    query = "SELECT * from #{ qq collection }"
 
     query += " WHERE #cond" if cond?
     [{count}] = plv8.execute "select count(*) from (#query) cnt"
