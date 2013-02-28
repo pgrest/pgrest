@@ -2,7 +2,6 @@ before_script:
   - "sudo pip install pgxnclient"
   - "sudo apt-get install libv8-dev"
   - "sudo pgxn install plv8"
-  - "dropdb --if-exists -U postgres test"
   - "createdb -U postgres test"
 
 script:
