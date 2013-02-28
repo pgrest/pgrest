@@ -117,6 +117,36 @@ export function select(param)
         entries: plv8.execute "#query limit $1 offset $2" [l, sk]
         query: cond
 
+export function upsert(param)
+    for p in <[u delay]> | typeof param[p] is \string => param[p] = parseInt param[p]
+    # XXX derive q from $set and table constraints
+    for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
+    {collection, u, $set, q, delay} = param
+    cond = compile collection, q if q
+    cols = [k for k of $set]
+    vals = [v for _,v of $set]
+    insert-cols = cols ++ [k for k of q]
+    insert-vals = vals ++ [v for _, v of q]
+    updates = ["#{qq it} = $#{i+1}" for it, i in cols]
+    xi = 0
+    while true
+        console.log \loop ++xi
+        query = "UPDATE #{ qq collection } SET #updates"
+        query += " WHERE #cond" if cond?
+        console.log \update query
+        res = plv8.execute query, vals
+        return res if res
+        console.log \updatefailed, delay
+        plv8.execute "select pg_sleep($1)" [delay] if delay
+        query = "INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{["$#{i+1}" for it,i in insert-cols].join \,})"
+        res = try
+          plv8.execute query, insert-vals
+        catch e
+          throw e unless e is /violates unique constraint/
+        console.log \insert res
+        return res if res
+
+
 export function boot()
     serial = 0
     deferred = []
