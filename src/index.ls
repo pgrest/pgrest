@@ -8,13 +8,13 @@ exports.new = (conString, cb) ->
   <- plx.eval -> plv8x_require \pgrest .boot!
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
   throw err if err
-  err <- plx.conn.query plv8x._mk_func \pgrest_select {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", "select"
-  err <- plx.conn.query plv8x._mk_func \pgrest_upsert {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", "upsert"
-  throw err if err
-  plx.select = (param, cb, onError) ->
-    err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_select($1) as ret" [JSON.stringify param]
-    return onError?(err) if err
-    cb? ret
+  for method in <[select upsert]>
+    plx[method] = (param, cb, onError) ->
+      err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_#method($1) as ret" [JSON.stringify param]
+      return onError?(err) if err
+      cb? ret
+    err <- plx.conn.query plv8x._mk_func "pgrest_#method" {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", method
+    throw err if err
   plx.query = (...args) ->
     cb = args.pop!
     err, { rows }? <- @conn.query ...args
