@@ -66,6 +66,8 @@ test = (model, key, expr) -> switch typeof expr
     | <[ number boolean ]> => ["(#key = #expr)"]
     | \string => ["(#key = #{ q expr })"]
     | \object =>
+        unless expr?
+            return ["(#key IS NULL)"]
         for op, ref of expr
             switch op
             | \$lt =>
