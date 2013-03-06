@@ -8,7 +8,7 @@ exports.new = (conString, cb) ->
   <- plx.eval -> plv8x_require \pgrest .boot!
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
   throw err if err
-  for method in <[select upsert]>
+  <[select upsert]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
       err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_#method($1) as ret" [JSON.stringify param]
       return onError?(err) if err
