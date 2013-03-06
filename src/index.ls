@@ -70,6 +70,8 @@ test = (model, key, expr) -> switch typeof expr
             return ["(#key IS NULL)"]
         for op, ref of expr
             switch op
+            | \$not =>
+                "(NOT #{test model, key, ref})"
             | \$lt =>
                 res = evaluate model, ref
                 "(#key < #res)"
@@ -81,7 +83,7 @@ test = (model, key, expr) -> switch typeof expr
                 res = q "{#{ref.join \,}}"
                 "(#key @> #res)"
             | \$ => let model-table = qq "#{model}s"
-                "#key = #model-table.#{ qq ref }"
+                "(#key = #model-table.#{ qq ref })"
             | _ => throw "Unknown operator: #op"
     | \undefined => [true]
 
