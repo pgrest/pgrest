@@ -6,7 +6,7 @@ conString = argv.db or process.env.PGRESTCONN or process.env.TESTDBNAME or proce
 plx <- (require \../).new conString
 
 process.exit 0 if argv.boot
-port = argv.port ? 3000
+{port=3000, prefix="/collections"} = argv
 express = try require \express 
 throw "express required for starting server" unless express
 app = express!
@@ -32,16 +32,16 @@ cols = for {table_schema, tbl} in rows
     seen[tbl] = true
     mount-model table_schema, tbl
 
-app.all '/collections', cors!, (req, res) ->
+app.all prefix, cors!, (req, res) ->
   res.setHeader 'Content-Type', 'application/json; charset=UTF-8'
   res.end JSON.stringify cols
 
 app.listen port
 console.log "Available collections:\n#{ cols * ' ' }"
-console.log "Serving `#conString` on http://localhost:#port/collections"
+console.log "Serving `#conString` on http://localhost:#port#prefix"
 
 function mount-model (schema, name)
-  app.all "/collections/#name", cors!, (req, resp) ->
+  app.all "#prefix/#name", cors!, (req, resp) ->
     param = req.query{ l, sk, c, s, q, fo } <<< { collection: "#schema.#name" }
     resp.setHeader 'Content-Type' 'application/json; charset=UTF-8'
     body <- plx.select param, _, -> resp.end JSON.stringify { error: "#it" }
