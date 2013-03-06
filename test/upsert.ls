@@ -26,15 +26,17 @@ describe 'pgrest', -> ``it``
     """
     done!
   .. 'udpate', (done) ->
-    res <- plx.query """select pgrest_upsert($1)""", [JSON.stringify collection: \pgrest_test, $set: {value: \0.0.2}, q: {field: \pgrest_version} ]
-    console.log res
+    [pgrest_upsert:res] <- plx.query """select pgrest_upsert($1)""", [JSON.stringify collection: \pgrest_test, $set: {value: \0.0.2}, q: {field: \pgrest_version} ]
+    res = JSON.parse res
+    expect res.updated .to.equal true
     [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
     res = JSON.parse res
     expect res.paging.count .to.equal 1
     done!
   .. 'insert', (done) ->
-    res <- plx.query """select pgrest_upsert($1)""", [JSON.stringify collection: \pgrest_test, $set: {value: \test}, q: {field: \pgrest_deployment} ]
-    console.log res
+    [pgrest_upsert:res] <- plx.query """select pgrest_upsert($1)""", [JSON.stringify collection: \pgrest_test, $set: {value: \test}, q: {field: \pgrest_deployment} ]
+    res = JSON.parse res
+    expect res.inserted .to.equal true
     [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
     res = JSON.parse res
     expect res.paging.count .to.equal 2

@@ -131,21 +131,17 @@ export function upsert(param)
     updates = ["#{qq it} = $#{i+1}" for it, i in cols]
     xi = 0
     while true
-        console.log \loop ++xi
         query = "UPDATE #{ qq collection } SET #updates"
         query += " WHERE #cond" if cond?
-        console.log \update query
         res = plv8.execute query, vals
-        return res if res
-        console.log \updatefailed, delay
+        return {+updated} if res
         plv8.execute "select pg_sleep($1)" [delay] if delay
         query = "INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{["$#{i+1}" for it,i in insert-cols].join \,})"
         res = try
           plv8.execute query, insert-vals
         catch e
           throw e unless e is /violates unique constraint/
-        console.log \insert res
-        return res if res
+        return {+inserted} if res
 
 
 export function boot()
