@@ -20,6 +20,7 @@ exports.new = (conString, cb) ->
     err, { rows }? <- @conn.query ...args
     throw err if err
     cb? rows
+  plx.end = -> plx.conn.end!
   return cb plx if cb
   return plx.conn.end!
 
