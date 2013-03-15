@@ -14,6 +14,7 @@ require! cors
 require! gzippo
 
 app.use gzippo.compress!
+app.use express.json!
 
 schema-cond = if argv.schema
     "IN ('#{argv.schema}')"
@@ -42,8 +43,14 @@ console.log "Serving `#conString` on http://localhost:#port#prefix"
 
 function mount-model (schema, name)
   app.all "#prefix/#name", cors!, (req, resp) ->
-    param = req.query{ l, sk, c, s, q, fo } <<< { collection: "#schema.#name" }
     resp.setHeader 'Content-Type' 'application/json; charset=UTF-8'
-    body <- plx.select param, _, -> resp.end JSON.stringify { error: "#it" }
+    param = req.query{ l, sk, c, s, q, fo, u, delay } <<< { collection: "#schema.#name" }
+    method = switch req.method
+    | \GET    => \select
+    | \POST   => \insert
+    | \PUT    => (if param.u then \upsert else \replace)
+    | \DELETE => \remove
+    param.body = req.body
+    body <- plx[method].call plx, param, _, -> resp.end JSON.stringify { error: "#it" }
     resp.end body
   return name

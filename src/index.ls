@@ -8,7 +8,7 @@ exports.new = (conString, cb) ->
   <- plx.eval -> plv8x_require \pgrest .boot!
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
   throw err if err
-  <[select upsert]>.forEach (method) ->
+  <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
       err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_#method($1) as ret" [JSON.stringify param]
       return onError?(err) if err
@@ -122,11 +122,34 @@ export function select(param)
         entries: plv8.execute "#query limit $1 offset $2" [l, sk]
         query: cond
 
+export function remove(param)
+  for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
+  {collection, body, q} = param
+  cond = compile collection, q if q
+  query = "DELETE FROM #{ qq collection }"
+  query += " WHERE #cond" if cond?
+  plv8.execute query
+  return insert(param)
+
+export function replace(param)
+  remove param
+  return insert param
+
+export function insert(param)
+  {collection, body} = param
+  return (for $set in (if Array.isArray body then body else if body then [body] else [])
+    insert-cols = [k for k of $set]
+    continue unless insert-cols.length
+    insert-vals = [v for _,v of $set]
+    query = "INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{["$#{i+1}" for it,i in insert-cols].join \,})"
+    plv8.execute query, insert-vals)
+
 export function upsert(param)
     for p in <[u delay]> | typeof param[p] is \string => param[p] = parseInt param[p]
     # XXX derive q from $set and table constraints
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
-    {collection, u, $set, q, delay} = param
+    {collection, u, body, q, delay} = param
+    {$set} = body
     cond = compile collection, q if q
     cols = [k for k of $set]
     vals = [v for _,v of $set]
