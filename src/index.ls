@@ -124,7 +124,7 @@ export function select(param)
 
 export function remove(param)
   for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
-  {collection, body, q} = param
+  {collection, $, q} = param
   cond = compile collection, q if q
   query = "DELETE FROM #{ qq collection }"
   query += " WHERE #cond" if cond?
@@ -136,8 +136,8 @@ export function replace(param)
   return insert param
 
 export function insert(param)
-  {collection, body} = param
-  return (for $set in (if Array.isArray body then body else if body then [body] else [])
+  {collection, $} = param
+  return (for $set in (if Array.isArray $ then $ else if $ then [$] else [])
     insert-cols = [k for k of $set]
     continue unless insert-cols.length
     insert-vals = [v for _,v of $set]
@@ -148,8 +148,8 @@ export function upsert(param)
     for p in <[u delay]> | typeof param[p] is \string => param[p] = parseInt param[p]
     # XXX derive q from $set and table constraints
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
-    {collection, u, body, q, delay} = param
-    {$set} = body
+    {collection, u, $={}, q, delay} = param
+    {$set={}} = $
     cond = compile collection, q if q
     cols = [k for k of $set]
     vals = [v for _,v of $set]

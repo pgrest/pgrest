@@ -50,7 +50,7 @@ function mount-model (schema, name)
     | \POST   => \insert
     | \PUT    => (if param.u then \upsert else \replace)
     | \DELETE => \remove
-    param.body = req.body
+    param.$ = req.body
     body <- plx[method].call plx, param, _, -> resp.end JSON.stringify { error: "#it" }
     resp.end body
   return name
