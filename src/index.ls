@@ -109,7 +109,9 @@ export function select(param)
     for p in <[q s]>    | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, l = 30, sk = 0, q, c, s, fo} = param
     cond = compile collection, q if q
-    query = "SELECT * from #{ qq collection }"
+
+    id-column = plv8.pgrest.PrimaryFieldOf[collection]
+    query = "SELECT *#{ if id-column then ", #id-column AS _id" else "" } FROM #{ qq collection }"
 
     query += " WHERE #cond" if cond?
     [{count}] = plv8.execute "select count(*) from (#query) cnt"
@@ -181,4 +183,29 @@ export function boot()
         next: ->
             doit = (-> return unless deferred.length; deferred.shift!0!; doit!)
             doit!
-    true
+    PrimaryFieldOf = {}
+    for {key, val, constraint} in plv8.execute SQL_PrimaryFieldInfo | val.length is 1
+      # console.log "PrimaryFieldOf(#key) = #val (#constraint)"
+      PrimaryFieldOf[key] = val.0
+    plv8.pgrest = { PrimaryFieldOf }
+    return true
+
+const SQL_PrimaryFieldInfo = """
+SELECT t.table_schema || '.' || t.table_name AS key,
+       kcu.constraint_name AS constraint,
+       array_agg('' || kcu.column_name) AS val
+FROM INFORMATION_SCHEMA.TABLES t
+   LEFT JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+        ON tc.table_catalog = t.table_catalog
+       AND tc.table_schema = t.table_schema
+       AND tc.table_name = t.table_name
+       AND tc.constraint_type = 'PRIMARY KEY'
+   LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+        ON kcu.table_catalog = tc.table_catalog
+       AND kcu.table_schema = tc.table_schema
+       AND kcu.table_name = tc.table_name
+       AND kcu.constraint_name = tc.constraint_name
+WHERE t.table_schema NOT IN ('pg_catalog', 'information_schema', 'plv8x')
+  AND kcu.column_name IS NOT NULL
+GROUP BY t.table_schema || '.' || t.table_name, kcu.constraint_name
+"""
