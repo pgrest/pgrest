@@ -25,6 +25,7 @@ scripts:
 engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
+  trycatch: \*
   plv8x: 'git://github.com/clkao/plv8x.git'
   sequelize: 'git://github.com/clkao/sequelize.git'
 devDependencies:
