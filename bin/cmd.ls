@@ -23,6 +23,7 @@ else
 
 # Generic JSON routing helper
 route = (path, fn) -> app.all "#prefix#path", cors!, (req, resp) ->
+  return resp.send 200 if req.method is \OPTION
   resp.setHeader \Content-Type 'application/json; charset=UTF-8'
   done = -> switch typeof it
     | \number => resp.send it it
@@ -39,22 +40,39 @@ route = (path, fn) -> app.all "#prefix#path", cors!, (req, resp) ->
     | _       => resp.send 500 { error: "#it" }
 
 rows <- plx.query """
-  SELECT t.table_schema, t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema #schema-cond;
+  SELECT t.table_schema scm, t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema #schema-cond;
 """
 seen = {}
-cols = for {table_schema, tbl} in rows
+default-schema = null
+cols = for {scm, tbl} in rows
+  schema ||= scm
   if seen[tbl]
-    console.log "#table_schema.#tbl not loaded, #tbl already in use"
+    console.log "#scm.#tbl not loaded, #tbl already in use"
   else
     seen[tbl] = true
-    mount-model table_schema, tbl
+    mount-model scm, tbl
+default-schema ?= \public
 
 route "" -> cols
-route "/:name" ->
-  # Non-existing collection
-  console.log @method
+route "/:name", !(done) ->
   throw 404 if @method in <[ GET DELETE ]>
-  return []
+  throw 405 if @method not in <[ POST PUT ]>
+  { name } = @params
+  # Non-existing collection - Autovivify it
+  # Strategy: Enumerate all unique columns & data types, and CREATE TABLE accordingly.
+  param = collection: "#default-schema.#name" $: if Array.isArray @body then @body else [@body]
+  cols = {}
+  TypeMap = boolean: \boolean, number: \numeric, string: \text, object: \plv8x.json
+  for row in param.$
+    for key in Object.keys row | row[key]?
+      cols[key] ||= (TypeMap[typeof row[key]] || \plv8x.json)
+  <- plx.query """
+    CREATE TABLE "#name" (#{
+      [ "#col #typ" for col, typ of cols ] * ",\n"
+    })
+  """
+  mount-model schema, name
+  plx.insert param, done, -> throw "#it"
 
 app.listen port
 console.log "Available collections:\n#{ cols * ' ' }"
@@ -68,6 +86,7 @@ function mount-model (schema, name)
     | \POST   => \insert
     | \PUT    => (if param.u then \upsert else \replace)
     | \DELETE => \remove
+    | _       => throw 405
     param.$ = @body
     plx[method].call plx, param, it, -> throw "#it"
   route "/#name/:_id" !->
@@ -76,6 +95,7 @@ function mount-model (schema, name)
     | \GET    => \select
     | \PUT    => \upsert
     | \DELETE => \remove
+    | _       => throw 405
     param.$ = @body
     plx[method].call plx, param, it, -> throw "#it"
   return name

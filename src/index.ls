@@ -131,8 +131,7 @@ export function remove(param)
   cond = compile collection, q if q
   query = "DELETE FROM #{ qq collection }"
   query += " WHERE #cond" if cond?
-  plv8.execute query
-  return insert(param)
+  return plv8.execute query
 
 export function replace(param)
   remove param
@@ -143,7 +142,7 @@ export function insert(param)
   return (for $set in (if Array.isArray $ then $ else if $ then [$] else [])
     insert-cols = [k for k of $set]
     continue unless insert-cols.length
-    insert-vals = [v for _,v of $set]
+    insert-vals = [(if typeof v is \object then JSON.stringify v else v) for _,v of $set]
     query = "INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{["$#{i+1}" for it,i in insert-cols].join \,})"
     plv8.execute query, insert-vals)
 
