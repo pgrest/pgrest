@@ -53,4 +53,14 @@ function mount-model (schema, name)
     param.$ = req.body
     body <- plx[method].call plx, param, _, -> resp.end JSON.stringify { error: "#it" }
     resp.end body
+  app.all "#prefix/#name/:_id", cors!, (req, resp) ->
+    resp.setHeader 'Content-Type' 'application/json; charset=UTF-8'
+    param = { l: 1 fo: yes collection: "#schema.#name" q: { _id: req.params._id } }
+    method = switch req.method
+    | \GET    => \select
+    | \PUT    => \upsert
+    | \DELETE => \remove
+    param.$ = req.body
+    body <- plx[method].call plx, param, _, -> resp.end JSON.stringify { error: "#it" }
+    resp.end body
   return name
