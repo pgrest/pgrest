@@ -137,13 +137,17 @@ export function replace(param)
   remove param
   return insert param
 
+function _insert_statement(collection, insert-cols, insert-vals)
+  values = ["$#{i+1}" for _,i in insert-cols]
+  insert-vals = [(if v? and typeof v is \object then JSON.stringify v else v) for v in insert-vals]
+  ["INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{values.join \,})", insert-vals]
+
 export function insert(param)
   {collection, $} = param
   return (for $set in (if Array.isArray $ then $ else if $ then [$] else [])
     insert-cols = [k for k of $set]
     continue unless insert-cols.length
-    insert-vals = [(if typeof v is \object then JSON.stringify v else v) for _,v of $set]
-    query = "INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{["$#{i+1}" for it,i in insert-cols].join \,})"
+    [query, insert-vals] = _insert_statement collection, insert-cols, [v for _, v of $set]
     plv8.execute query, insert-vals)
 
 export function upsert(param)
@@ -165,9 +169,9 @@ export function upsert(param)
         res = plv8.execute query, vals
         return {+updated} if res
         plv8.execute "select pg_sleep($1)" [delay] if delay
-        query = "INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{["$#{i+1}" for it,i in insert-cols].join \,})"
+        [query, _vals] = _insert_statement collection, insert-cols, insert-vals
         res = try
-          plv8.execute query, insert-vals
+          plv8.execute query, _vals
         catch e
           throw e unless e is /violates unique constraint/
         return {+inserted} if res
