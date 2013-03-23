@@ -2,6 +2,12 @@
 require! {optimist, plv8x, trycatch}
 {argv} = optimist
 conString = argv.db or process.env.PGRESTCONN or process.env.TESTDBNAME or process.argv?2
+{pgsock} = argv
+
+if pgsock
+  conString = do
+    host: pgsock
+    database: conString
 
 plx <- (require \../).new conString
 
