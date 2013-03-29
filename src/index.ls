@@ -1,8 +1,9 @@
 require! plv8x
 exports.new = (conString, cb) ->
   throw "Expected: new(dsn, cb) where dsn is 'db', 'host/db' or 'tcp://host/db'" unless conString
-  conString = "localhost/#conString" unless conString is // / //
-  conString = "tcp://#conString"     unless conString is // :/ //
+  if typeof conString is \string
+    conString = "localhost/#conString" unless conString is // / //
+    conString = "tcp://#conString"     unless conString is // :/ //
   plx <- plv8x.new conString
   <- plx.import-bundle \pgrest require.resolve(\../package.json)
   <- plx.eval -> plv8x_require \pgrest .boot!
