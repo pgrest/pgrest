@@ -22,7 +22,13 @@ else
     "NOT IN ( 'information_schema', 'pg_catalog', 'plv8x')"
 
 # Generic JSON routing helper
-route = (path, fn) -> app.all "#prefix#path", cors!, (req, resp) ->
+route = (path, fn) -> app.all "#{
+  switch path.0
+  | void => prefix
+  | '/'  => ''
+  | _    => "#prefix/"
+}#path", cors!, (req, resp) ->
+  # TODO: Content-Negotiate into CSV
   return resp.send 200 if req.method is \OPTION
   resp.setHeader \Content-Type 'application/json; charset=UTF-8'
   done = -> switch typeof it
@@ -54,8 +60,8 @@ cols = for {scm, tbl} in rows
 default-schema ?= \public
 
 route "" -> cols
-route "/:name", !(done) ->
-  throw 404 if @method in <[ GET DELETE ]>
+route ":name", !(done) ->
+  throw 404 if @method in <[ GET DELETE ]> # TODO: If not exist, remount
   throw 405 if @method not in <[ POST PUT ]>
   { name } = @params
   # Non-existing collection - Autovivify it
@@ -74,12 +80,14 @@ route "/:name", !(done) ->
   mount-model schema, name
   plx.insert param, done, -> throw "#it"
 
+route '/runCommand' -> throw "Not implemented yet"
+
 app.listen port
 console.log "Available collections:\n#{ cols * ' ' }"
 console.log "Serving `#conString` on http://localhost:#port#prefix"
 
 function mount-model (schema, name)
-  route "/#name" !->
+  route "#name" !->
     param = @query{ l, sk, c, s, q, fo, u, delay } <<< collection: "#schema.#name"
     method = switch @method
     | \GET    => \select
@@ -87,9 +95,11 @@ function mount-model (schema, name)
     | \PUT    => (if param.u then \upsert else \replace)
     | \DELETE => \remove
     | _       => throw 405
-    param.$ = @body
+    param.$ = @body # TODO: Accept CSV as PUT/POST Content-Type
+    # text/csv;header=present
+    # text/csv;header=absent
     plx[method].call plx, param, it, -> throw "#it"
-  route "/#name/:_id" !->
+  route "#name/:_id" !->
     param = l: 1 fo: yes collection: "#schema.#name" q: { _id: @params._id }
     method = switch @method
     | \GET    => \select
