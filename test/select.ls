@@ -8,7 +8,7 @@ describe 'pgrest', -> ``it``
     conString = "tcp://localhost/#{ process.env.TESTDBNAME }"
     pgrest := require \..
     pgrest.should.be.ok
-    _plx <- pgrest.new conString
+    _plx <- pgrest.new conString, {foo: \bar}
     plx := _plx
     done!
 #  .. 'error', (done) ->

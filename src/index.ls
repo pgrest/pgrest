@@ -1,13 +1,13 @@
 require! plv8x
-exports.new = (conString, cb) ->
+exports.new = (conString, config, cb) ->
   throw "Expected: new(dsn, cb) where dsn is 'db', 'host/db' or 'tcp://host/db'" unless conString
   if typeof conString is \string
     conString = "localhost/#conString" unless conString is // / //
     conString = "tcp://#conString"     unless conString is // :/ //
   plx <- plv8x.new conString
   <- plx.import-bundle \pgrest require.resolve(\../package.json)
-  <- plx.eval -> plv8x_require \pgrest .boot!
-  err <- plx.conn.query plv8x._mk_func \pgrest_boot {} \boolean plv8x.plv8x-lift "pgrest", "boot"
+  <- plx.ap (-> plv8x_require \pgrest .boot), [config]
+  err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean plv8x.plv8x-lift "pgrest", "boot"
   throw err if err
   <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
@@ -178,7 +178,7 @@ export function upsert(param)
         return {+inserted} if res
 
 
-export function boot()
+export function boot(config)
     serial = 0
     deferred = []
     ``console`` = { log: -> plv8.elog(WARNING, ...arguments) }
@@ -192,7 +192,7 @@ export function boot()
     for {key, val, constraint} in plv8.execute SQL_PrimaryFieldInfo | val.length is 1
       # console.log "PrimaryFieldOf(#key) = #val (#constraint)"
       PrimaryFieldOf[key] = val.0
-    plv8.pgrest = { PrimaryFieldOf }
+    plv8.pgrest = { PrimaryFieldOf, config }
     return true
 
 const SQL_PrimaryFieldInfo = """
