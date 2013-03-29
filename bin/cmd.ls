@@ -9,7 +9,7 @@ if pgsock
     host: pgsock
     database: conString
 
-plx <- (require \../).new conString
+plx <- (require \../).new conString, {}
 
 process.exit 0 if argv.boot
 {port=3000, prefix="/collections"} = argv
