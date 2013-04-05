@@ -145,6 +145,14 @@ function _insert_statement(collection, insert-cols, insert-vals)
 
 export function insert(param)
   {collection, $} = param
+
+  if Array.isArray $ and Array.isArray $.0
+    [insert-cols, ...entries] = $
+    return (for $value in entries
+      [query, insert-vals] = _insert_statement collection, insert-cols, $value
+      plv8.execute query, insert-vals
+    )
+
   return (for $set in (if Array.isArray $ then $ else if $ then [$] else [])
     insert-cols = [k for k of $set]
     continue unless insert-cols.length
