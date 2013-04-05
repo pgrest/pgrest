@@ -146,18 +146,17 @@ function _insert_statement(collection, insert-cols, insert-vals)
 export function insert(param)
   {collection, $} = param
 
-  if Array.isArray $ and Array.isArray $.0
+  return if Array.isArray $ and Array.isArray $.0
     [insert-cols, ...entries] = $
-    return (for $value in entries
+    for $value in entries
       [query, insert-vals] = _insert_statement collection, insert-cols, $value
       plv8.execute query, insert-vals
-    )
-
-  return (for $set in (if Array.isArray $ then $ else if $ then [$] else [])
-    insert-cols = [k for k of $set]
-    continue unless insert-cols.length
-    [query, insert-vals] = _insert_statement collection, insert-cols, [v for _, v of $set]
-    plv8.execute query, insert-vals)
+  else
+    for $set in (if Array.isArray $ then $ else if $ then [$] else [])
+      insert-cols = [k for k of $set]
+      continue unless insert-cols.length
+      [query, insert-vals] = _insert_statement collection, insert-cols, [v for _, v of $set]
+      plv8.execute query, insert-vals
 
 export function upsert(param)
     for p in <[u delay]> | typeof param[p] is \string => param[p] = parseInt param[p]
