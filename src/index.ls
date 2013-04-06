@@ -16,11 +16,6 @@ exports.new = (conString, config, cb) ->
       cb? ret
     err <- plx.conn.query plv8x._mk_func "pgrest_#method" {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", method
     throw err if err
-  plx.query = (...args) ->
-    cb = args.pop!
-    err, { rows }? <- @conn.query ...args
-    throw err if err
-    cb? rows
   plx.end = -> plx.conn.end!
   return cb plx if cb
   return plx.conn.end!
