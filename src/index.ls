@@ -6,7 +6,7 @@ exports.new = (conString, config, cb) ->
     conString = "tcp://#conString"     unless conString is // :/ //
   plx <- plv8x.new conString
   <- plx.import-bundle \pgrest require.resolve(\../package.json)
-  <- plx.ap (-> plv8x_require \pgrest .boot), [config]
+  <- plx.ap (-> plv8x.require \pgrest .boot), [config]
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean plv8x.plv8x-lift "pgrest", "boot"
   throw err if err
   <[ select upsert insert replace remove ]>.forEach (method) ->
