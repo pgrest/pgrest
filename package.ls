@@ -13,8 +13,6 @@ repository:
   url: 'git://github.com/clkao/pgrest.git'
 scripts:
   test: """
-    ln -sf ../../plv8x/bundled_modules/util node_modules/sequelize/node_modules/ &&
-    ln -sf ../../plv8x/bundled_modules/events node_modules/sequelize/node_modules/ &&
     env PATH="./node_modules/.bin:$PATH" mocha
   """
   prepublish: """
@@ -27,7 +25,6 @@ dependencies:
   optimist: \0.3.x
   trycatch: \*
   plv8x: 'git://github.com/clkao/plv8x.git'
-  sequelize: 'git://github.com/clkao/sequelize.git'
 devDependencies:
   mocha: \*
   chai: \*
