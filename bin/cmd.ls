@@ -18,9 +18,11 @@ throw "express required for starting server" unless express
 app = express!
 require! cors
 require! gzippo
+require! \connect-csv
 
 app.use gzippo.compress!
 app.use express.json!
+app.use connect-csv header: \guess
 
 schema-cond = if argv.schema
     "IN ('#{argv.schema}')"
@@ -72,10 +74,16 @@ route ":name", !(done) ->
   { name } = @params
   # Non-existing collection - Autovivify it
   # Strategy: Enumerate all unique columns & data types, and CREATE TABLE accordingly.
-  param = collection: "#default-schema.#name" $: if Array.isArray @body then @body else [@body]
+  $ = if Array.isArray @body then @body else [@body]
+  param = { $, collection: "#default-schema.#name" }
   cols = {}
   TypeMap = boolean: \boolean, number: \numeric, string: \text, object: \plv8x.json
-  for row in param.$
+  if Array.isArray $.0
+    [insert-cols, ...entries] = $
+    for row in entries
+      for key, idx in insert-cols | row[idx]?
+        cols[key] ||= (TypeMap[typeof row[idx]] || \plv8x.json)
+  else for row in $
     for key in Object.keys row | row[key]?
       cols[key] ||= (TypeMap[typeof row[key]] || \plv8x.json)
   <- plx.query """

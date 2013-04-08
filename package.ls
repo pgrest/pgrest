@@ -32,4 +32,5 @@ devDependencies:
   express: \3.1.x
   cors: \0.0.4
   gzippo: \0.2.x
+  \connect-csv : \*
 optionalDependencies: {}
