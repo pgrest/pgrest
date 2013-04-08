@@ -24,7 +24,7 @@ engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
   trycatch: \*
-  plv8x: 'git://github.com/clkao/plv8x.git'
+  plv8x: \0.3.x
 devDependencies:
   mocha: \*
   chai: \*
