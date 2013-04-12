@@ -7,7 +7,7 @@ exports.new = (conString, config, cb) ->
   plx <- plv8x.new conString
   <- plx.import-bundle \pgrest require.resolve(\../package.json)
   <- plx.ap (-> plv8x.require \pgrest .boot), [config]
-  err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean plv8x.plv8x-lift "pgrest", "boot"
+  err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean (plv8x.plv8x-lift "pgrest", "boot"), {+boot}
   throw err if err
   <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
@@ -180,7 +180,6 @@ export function upsert(param)
 
 
 export function boot(config)
-    plv8x.boot!
     serial = 0
     deferred = []
     ``pgrest = {}``
