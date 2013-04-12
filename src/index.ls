@@ -103,7 +103,7 @@ export function select(param)
     for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
     for p in <[q s]>    | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, l = 30, sk = 0, q, c, s, fo} = param
-    id-column = plv8.pgrest.PrimaryFieldOf[collection]
+    id-column = pgrest.PrimaryFieldOf[collection]
     q[id-column] = delete q._id if q?_id and id-column
     cond = compile collection, q if q
 
@@ -180,8 +180,10 @@ export function upsert(param)
 
 
 export function boot(config)
+    plv8x.boot!
     serial = 0
     deferred = []
+    ``pgrest = {}``
     ``console`` = { log: -> plv8.elog(WARNING, ...arguments) }
     ``setTimeout`` = (fn, ms=0) -> deferred.push [fn, ms + (serial++ * 0.001)]
     ``pgprocess`` = do
@@ -193,7 +195,7 @@ export function boot(config)
     for {key, val, constraint} in plv8.execute SQL_PrimaryFieldInfo | val.length is 1
       # console.log "PrimaryFieldOf(#key) = #val (#constraint)"
       PrimaryFieldOf[key] = val.0
-    plv8.pgrest = { PrimaryFieldOf, config }
+    pgrest <<< { PrimaryFieldOf, config }
     return true
 
 const SQL_PrimaryFieldInfo = """
