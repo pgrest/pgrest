@@ -2,6 +2,9 @@
 require! {optimist, plv8x, trycatch}
 {argv} = optimist
 conString = argv.db or process.env['PLV8XCONN'] or process.env['PLV8XDB'] or process.env.TESTDBNAME or process.argv?2
+unless conString
+  console.log "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
+  process.exit!
 {pgsock} = argv
 
 if pgsock
