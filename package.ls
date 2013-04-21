@@ -24,7 +24,7 @@ engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
   trycatch: \*
-  plv8x: \0.3.x
+  plv8x: \>=0.3.5
 devDependencies:
   mocha: \*
   chai: \*

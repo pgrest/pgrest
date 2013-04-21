@@ -5,6 +5,15 @@ pgrest
 
 WARNING: this is work in progress and everything is likely to change!
 
+# Slides in lieu of a proper documentation
+
+<http://www.audreyt.org/newdict/jekyller/_public/>
+
+The first section describes plv8x, and the later sections has some real-world
+examples such as:
+
+<http://www.audreyt.org/newdict/jekyller/_public/?full#pgrest-mongolab-api-server>
+
 # PgREST is...
 
 * a JSON document store

@@ -1,7 +1,7 @@
 ``#!/usr/bin/env node``
 require! {optimist, plv8x, trycatch}
 {argv} = optimist
-conString = argv.db or process.env.PGRESTCONN or process.env.TESTDBNAME or process.argv?2
+conString = argv.db or process.env['PLV8XCONN'] or process.env['PLV8XDB'] or process.env.TESTDBNAME or process.argv?2
 {pgsock} = argv
 
 if pgsock
