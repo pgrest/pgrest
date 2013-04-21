@@ -3,8 +3,8 @@ author:
   name: ['Chia-liang Kao']
   email: 'clkao@clkao.org'
 name: 'pgrest'
-description: 'enable REST in postgres'
-version: '0.0.1'
+description: 'Enable REST in PostgreSQL'
+version: '0.0.2'
 main: \lib/index.js
 bin:
   pgrest: 'bin/cmd.js'
@@ -24,13 +24,13 @@ engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
   trycatch: \*
-  plv8x: \>=0.3.5
-devDependencies:
-  mocha: \*
-  chai: \*
-  LiveScript: \1.1.1
+  plv8x: \0.3.x
   express: \3.1.x
   cors: \0.0.x
   gzippo: \0.2.x
   \connect-csv : \*
+devDependencies:
+  mocha: \*
+  chai: \*
+  LiveScript: \1.1.1
 optionalDependencies: {}
