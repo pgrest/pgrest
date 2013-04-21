@@ -25,12 +25,12 @@ dependencies:
   optimist: \0.3.x
   trycatch: \*
   plv8x: \>=0.3.5
-devDependencies:
-  mocha: \*
-  chai: \*
-  LiveScript: \1.1.1
   express: \3.1.x
   cors: \0.0.x
   gzippo: \0.2.x
   \connect-csv : \*
+devDependencies:
+  mocha: \*
+  chai: \*
+  LiveScript: \1.1.1
 optionalDependencies: {}
