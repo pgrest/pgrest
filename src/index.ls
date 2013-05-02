@@ -135,9 +135,12 @@ export function replace(param)
 
 function refresh-meta(collection)
   pgrest.Meta ?= {}
+  [schema, table] = collection.split \.
+  unless table
+    [schema, table] = [\public, schema]
   pgrest.Meta[collection] = {[column_name, data_type] for {column_name, data_type} in plv8.execute """
-  select column_name, data_type from information_schema.columns where table_name = $1
-  """, [collection]}
+  select column_name, data_type from information_schema.columns where table_schema = $1 and table_name = $2
+  """, [schema, table]}
 
 function _insert_statement(collection, insert-cols, insert-vals)
   meta = pgrest.Meta[collection]
