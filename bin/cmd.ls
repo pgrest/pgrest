@@ -80,15 +80,14 @@ route ":name", !(done) ->
   $ = if Array.isArray @body then @body else [@body]
   param = { $, collection: "#default-schema.#name" }
   cols = {}
-  TypeMap = boolean: \boolean, number: \numeric, string: \text, object: \plv8x.json
   if Array.isArray $.0
     [insert-cols, ...entries] = $
     for row in entries
       for key, idx in insert-cols | row[idx]?
-        cols[key] ||= (TypeMap[typeof row[idx]] || \plv8x.json)
+        cols[key] = derive-type row[idx], cols[key]
   else for row in $
     for key in Object.keys row | row[key]?
-      cols[key] ||= (TypeMap[typeof row[key]] || \plv8x.json)
+      cols[key] = derive-type row[key], cols[key]
   <- plx.query """
     CREATE TABLE "#name" (#{
       [ "#col #typ" for col, typ of cols ] * ",\n"
@@ -102,6 +101,10 @@ route '/runCommand' -> throw "Not implemented yet"
 app.listen port
 console.log "Available collections:\n#{ cols * ' ' }"
 console.log "Serving `#conString` on http://localhost:#port#prefix"
+
+function derive-type (content, type)
+  TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
+  TypeMap[typeof! content || \plv8x.json]
 
 function mount-model (schema, name)
   route "#name" !->

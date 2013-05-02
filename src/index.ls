@@ -132,14 +132,29 @@ export function replace(param)
   remove param
   return insert param
 
+
+function refresh-meta(collection)
+  pgrest.Meta ?= {}
+  pgrest.Meta[collection] = {[column_name, data_type] for {column_name, data_type} in plv8.execute """
+  select column_name, data_type from information_schema.columns where table_name = $1
+  """, [collection]}
+
 function _insert_statement(collection, insert-cols, insert-vals)
+  meta = pgrest.Meta[collection]
   values = ["$#{i+1}" for _,i in insert-cols]
-  insert-vals = [(if v? and typeof v is \object then JSON.stringify v else v) for v in insert-vals]
+  insert-vals = for v,i in insert-vals
+    if meta[insert-cols[i]] is \ARRAY
+      v
+    else if v? and typeof v is \object
+      JSON.stringify v
+    else
+      v
   ["INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{values.join \,})", insert-vals]
 
 export function insert(param)
   {collection, $} = param
 
+  refresh-meta collection
   return if Array.isArray $ and Array.isArray $.0
     [insert-cols, ...entries] = $
     for $value in entries
@@ -158,6 +173,7 @@ export function upsert(param)
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, u, $={}, q, delay} = param
     {$set={}} = $
+    refresh-meta collection
     cond = compile collection, q if q
     cols = [k for k of $set]
     vals = [v for _,v of $set]
