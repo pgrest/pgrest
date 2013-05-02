@@ -11,9 +11,6 @@ describe 'pgrest', -> ``it``
     _plx <- pgrest.new conString, {}
     plx := _plx
     done!
-#  .. 'error', (done) ->
-#    (-> plx.query "X" -> console.error \grr).should.throw 'syntax error at or near "X"'
-#    done!
   .. 'test data', (done) ->
     res <- plx.query """
     DROP TABLE IF EXISTS pgrest_test;
@@ -35,6 +32,8 @@ describe 'pgrest', -> ``it``
     [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
     res = JSON.parse res
     expect res.paging.count .to.equal 3
+    content = {[field, value] for {field,value} in res.entries}
+    expect content.z3 .to.deep.equal <[z2 z3]>
     done!
   .. 'insert array', (done) ->
     [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [JSON.stringify collection: \pgrest_test, $: [
