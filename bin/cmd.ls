@@ -15,7 +15,7 @@ if pgsock
 plx <- (require \../).new conString, {}
 
 process.exit 0 if argv.boot
-{port=3000, prefix="/collections"} = argv
+{port=3000, prefix="/collections", host="127.0.0.1"} = argv
 express = try require \express
 throw "express required for starting server" unless express
 app = express!
@@ -98,9 +98,9 @@ route ":name", !(done) ->
 
 route '/runCommand' -> throw "Not implemented yet"
 
-app.listen port
+app.listen port, host
 console.log "Available collections:\n#{ cols * ' ' }"
-console.log "Serving `#conString` on http://localhost:#port#prefix"
+console.log "Serving `#conString` on http://#host:#port#prefix"
 
 function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
