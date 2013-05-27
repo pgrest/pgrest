@@ -99,6 +99,7 @@ order-by = (fields) ->
         | _  => throw "unknown order type: #q #k"
     sort * ", "
 
+export routes = -> require \./routes
 export function select(param)
     for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
     for p in <[q s]>    | typeof param[p] is \string => param[p] = JSON.parse param[p]

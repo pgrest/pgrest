@@ -12,8 +12,9 @@ if pgsock
     host: pgsock
     database: conString
 
-plx <- require \.. .new conString, {}
-{mount-default}:pgrest = (require \../lib/pgrest)
+pgrest = require \..
+plx <- pgrest .new conString, {}
+{mount-default}:routes = pgrest.routes!
 
 process.exit 0 if argv.boot
 {port=3000, prefix="/collections", host="127.0.0.1"} = argv
@@ -35,7 +36,7 @@ route = (path, fn) ->
       | '/'  => ''
       | _    => "#prefix/"
     }#path"
-  app.all fullpath, cors!, pgrest.route path, fn
+  app.all fullpath, cors!, routes.route path, fn
 
 cols <- mount-default plx, argv.schema, route
 
