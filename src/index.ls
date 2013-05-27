@@ -212,10 +212,14 @@ export function boot(config)
             doit = (-> return unless deferred.length; deferred.shift!0!; doit!)
             doit!
     PrimaryFieldOf = {}
+    ColumnsOf = {}
     for {key, val, constraint} in plv8.execute SQL_PrimaryFieldInfo | val.length is 1
       # console.log "PrimaryFieldOf(#key) = #val (#constraint)"
       PrimaryFieldOf[key] = val.0
-    pgrest <<< { PrimaryFieldOf, config }
+    for {name, columns} in plv8.execute SQL_ColumnsInfo
+      ColumnsOf[name] = columns
+
+    pgrest <<< { PrimaryFieldOf, ColumnsOf, config }
     return true
 
 const SQL_PrimaryFieldInfo = """
@@ -236,4 +240,9 @@ FROM INFORMATION_SCHEMA.TABLES t
 WHERE t.table_schema NOT IN ('pg_catalog', 'information_schema', 'plv8x')
   AND kcu.column_name IS NOT NULL
 GROUP BY t.table_schema || '.' || t.table_name, kcu.constraint_name
+"""
+
+const SQL_ColumnsInfo = """
+SELECT table_schema || '.' || table_name as name, array_agg('' || column_name) as columns
+FROM information_schema.columns WHERE table_schema NOT IN ('pg_catalog', 'information_schema', 'plv8x') group by name;
 """
