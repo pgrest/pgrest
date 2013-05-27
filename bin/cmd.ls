@@ -13,7 +13,7 @@ if pgsock
     database: conString
 
 plx <- require \.. .new conString, {}
-pgrest = (require \../lib/pgrest)
+{derive-type, mount-model}:pgrest = (require \../lib/pgrest)
 
 process.exit 0 if argv.boot
 {port=3000, prefix="/collections", host="127.0.0.1"} = argv
@@ -55,7 +55,7 @@ cols = for {scm, tbl} in rows
     console.log "#scm.#tbl not loaded, #tbl already in use"
   else
     seen[tbl] = true
-    mount-model scm, tbl
+    mount-model scm, tbl, route
 default-schema ?= \public
 
 route "" -> cols
@@ -81,7 +81,7 @@ route ":name", !(done) ->
       [ "#col #typ" for col, typ of cols ] * ",\n"
     })
   """
-  mount-model schema, name
+  mount-model schema, name, route
   plx.insert param, done, -> throw "#it"
 
 route '/runCommand' -> throw "Not implemented yet"
@@ -90,30 +90,3 @@ app.listen port, host
 console.log "Available collections:\n#{ cols * ' ' }"
 console.log "Serving `#conString` on http://#host:#port#prefix"
 
-function derive-type (content, type)
-  TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
-  TypeMap[typeof! content || \plv8x.json]
-
-function mount-model (schema, name)
-  route "#name" !->
-    param = @query{ l, sk, c, s, q, fo, u, delay } <<< collection: "#schema.#name"
-    method = switch @method
-    | \GET    => \select
-    | \POST   => \insert
-    | \PUT    => (if param.u then \upsert else \replace)
-    | \DELETE => \remove
-    | _       => throw 405
-    param.$ = @body # TODO: Accept CSV as PUT/POST Content-Type
-    # text/csv;header=present
-    # text/csv;header=absent
-    plx[method].call plx, param, it, -> throw "#it"
-  route "#name/:_id" !->
-    param = l: 1 fo: yes collection: "#schema.#name" q: { _id: @params._id }
-    method = switch @method
-    | \GET    => \select
-    | \PUT    => \upsert
-    | \DELETE => \remove
-    | _       => throw 405
-    param.$ = @body
-    plx[method].call plx, param, it, -> throw "#it"
-  return name
