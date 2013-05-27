@@ -107,9 +107,19 @@ export function select(param)
     id-column = pgrest.PrimaryFieldOf[collection]
     q[id-column] = delete q._id if q?_id and id-column
     cond = compile collection, q if q
+    if pgrest.ColumnsOf[collection]
+      columns = [].concat that
+      if f
+        inclusive = 1 in [v for _,v of f]
+        if inclusive
+          columns.=filter (f.)
+        else
+          columns.=filter -> !f[it]? or f[it]
+    else
+      columns = ['*']
 
-    columns = if f => [qq k for k of f].join \, else '*'
-    query = "SELECT #{columns}#{ if id-column then ", #id-column AS _id" else "" } FROM #{ qq collection }"
+    columns.push id-column if id-column
+    query = "SELECT #{columns.map qq .join \,} FROM #{ qq collection }"
 
     query += " WHERE #cond" if cond?
     [{count}] = plv8.execute "select count(*) from (#query) cnt"
