@@ -1,5 +1,5 @@
 ``#!/usr/bin/env node``
-require! {optimist, plv8x, trycatch}
+require! {optimist, plv8x}
 {argv} = optimist
 conString = argv.db or process.env['PLV8XCONN'] or process.env['PLV8XDB'] or process.env.TESTDBNAME or process.argv?2
 unless conString
@@ -12,7 +12,8 @@ if pgsock
     host: pgsock
     database: conString
 
-plx <- (require \../).new conString, {}
+plx <- require \.. .new conString, {}
+pgrest = (require \../lib/pgrest)
 
 process.exit 0 if argv.boot
 {port=3000, prefix="/collections", host="127.0.0.1"} = argv
@@ -27,34 +28,21 @@ app.use gzippo.compress!
 app.use express.json!
 app.use connect-csv header: \guess
 
+route = (path, fn) ->
+  fullpath = "#{
+      switch path.0
+      | void => prefix
+      | '/'  => ''
+      | _    => "#prefix/"
+    }#path"
+  app.all fullpath, cors!, pgrest.route path, fn
+
 schema-cond = if argv.schema
     "IN ('#{argv.schema}')"
 else
     "NOT IN ( 'information_schema', 'pg_catalog', 'plv8x')"
 
 # Generic JSON routing helper
-route = (path, fn) -> app.all "#{
-  switch path.0
-  | void => prefix
-  | '/'  => ''
-  | _    => "#prefix/"
-}#path", cors!, (req, resp) ->
-  # TODO: Content-Negotiate into CSV
-  return resp.send 200 if req.method is \OPTION
-  resp.setHeader \Content-Type 'application/json; charset=UTF-8'
-  done = -> switch typeof it
-    | \number => resp.send it it
-    | \object => resp.send 200 JSON.stringify it
-    | \string => resp.send "#it"
-  trycatch do
-    -> done fn.call req, -> done it
-    -> it.=message if it instanceof Error; switch typeof it
-    | \number => resp.send it, { error: it }
-    | \object => resp.send 500 it
-    | \string => (if it is /^\d\d\d$/
-      then resp.send it, { error: it }
-      else resp.send 500 { error: "#it" })
-    | _       => resp.send 500 { error: "#it" }
 
 rows <- plx.query """
   SELECT t.table_schema scm, t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema #schema-cond;
