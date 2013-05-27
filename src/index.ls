@@ -102,13 +102,14 @@ order-by = (fields) ->
 export routes = -> require \./routes
 export function select(param)
     for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
-    for p in <[q s]>    | typeof param[p] is \string => param[p] = JSON.parse param[p]
-    {collection, l = 30, sk = 0, q, c, s, fo} = param
+    for p in <[q s f]>  | typeof param[p] is \string => param[p] = JSON.parse param[p]
+    {collection, l = 30, sk = 0, q, c, s, f, fo} = param
     id-column = pgrest.PrimaryFieldOf[collection]
     q[id-column] = delete q._id if q?_id and id-column
     cond = compile collection, q if q
 
-    query = "SELECT *#{ if id-column then ", #id-column AS _id" else "" } FROM #{ qq collection }"
+    columns = if f => [qq k for k of f].join \, else '*'
+    query = "SELECT #{columns}#{ if id-column then ", #id-column AS _id" else "" } FROM #{ qq collection }"
 
     query += " WHERE #cond" if cond?
     [{count}] = plv8.execute "select count(*) from (#query) cnt"

@@ -25,7 +25,7 @@ export function derive-type (content, type)
 
 export function mount-model (plx, schema, name, route=route)
   route "#name" !->
-    param = @query{ l, sk, c, s, q, fo, u, delay } <<< collection: "#schema.#name"
+    param = @query{ l, sk, c, s, q, fo, f, u, delay } <<< collection: "#schema.#name"
     method = switch @method
     | \GET    => \select
     | \POST   => \insert
