@@ -110,7 +110,7 @@ export function select(param)
     if pgrest.ColumnsOf[collection]
       columns = [].concat that
       if f
-        inclusive = 1 in [v for _,v of f]
+        inclusive = 1 in [+v for _,v of f]
         if inclusive
           columns.=filter (f.)
         else
