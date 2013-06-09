@@ -24,8 +24,9 @@ q = -> """
 """
 
 qq = ->
+    return it if it is '*'
     it.replace /\.(\d+)/g -> "[#{ parseInt(RegExp.$1) + 1}]"
-      .replace /^(\w+)/ -> "#{ RegExp.$1.replace /"/g '""' }"
+      .replace /^([^.]*)/ -> "\"#{ RegExp.$1.replace /"/g '""' }\""
 
 walk = (model, meta) ->
     return [] unless meta?[model]
