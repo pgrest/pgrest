@@ -158,13 +158,21 @@ function refresh-meta(collection)
 function _insert_statement(collection, insert-cols, insert-vals)
   meta = pgrest.Meta[collection]
   values = ["$#{i+1}" for _,i in insert-cols]
+  todrop = []
   insert-vals = for v,i in insert-vals
+    if !meta[insert-cols[i]]?
+      console.error "#{insert-cols[i]} not found, skipping"
+      todrop.push i
+      continue
     if meta[insert-cols[i]] is \ARRAY
       v
     else if v? and typeof v is \object
       JSON.stringify v
     else
       v
+  for i in todrop.reverse!
+    insert-cols.splice i, 1
+    values.pop!
   ["INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{values.join \,})", insert-vals]
 
 export function insert(param)
