@@ -87,13 +87,17 @@ export function mount-default (plx, schema, route=route, cb)
     else for row in $
       for key in Object.keys row | row[key]?
         cols[key] = derive-type row[key], cols[key]
-    <- plx.query """
-      CREATE TABLE "#name" (#{
-        [ "#col #typ" for col, typ of cols ] * ",\n"
-      })
-    """
-    mount-model plx, schema, name, route
-    plx.insert param, done, -> throw "#it"
+    do-insert = ~>
+      mount-model plx, schema, name, route
+      plx.insert param, done, -> throw "#it"
+    if @method is \POST
+      plx.query """
+        CREATE TABLE "#name" (#{
+          [ "\"#col\" #typ" for col, typ of cols ] * ",\n"
+        })
+      """ do-insert
+    else
+      do-insert!
 
   route '/runCommand' -> throw "Not implemented yet"
 
