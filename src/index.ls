@@ -223,7 +223,9 @@ export function boot(config)
     serial = 0
     deferred = []
     ``pgrest = {}``
-    ``console`` = { log: -> plv8.elog(WARNING, ...arguments) }
+    ``console`` = do
+      log: -> plv8.elog(WARNING, ...arguments)
+      warn: -> plv8.elog(ERROR, ...arguments)
     ``setTimeout`` = (fn, ms=0) -> deferred.push [fn, ms + (serial++ * 0.001)]
     ``pgprocess`` = do
         nextTick: (fn) -> setTimeout fn
