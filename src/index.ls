@@ -88,7 +88,7 @@ evaluate = (model, ref) -> switch typeof ref
     | \string => q ref
     | \object => for op, v of ref => switch op
         | \$ => let model-table = qq "#{model}s"
-            "#model-table.#{ qq v }" 
+            "#model-table.#{ qq v }"
         | \$ago => "'now'::timestamptz - #{ q "#v ms" }::interval"
         | _ => continue
 
