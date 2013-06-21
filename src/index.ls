@@ -105,6 +105,8 @@ export function select(param)
     for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
     for p in <[q s f]>  | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, l = 30, sk = 0, q, c, s, f, fo} = param
+    # XXX: experimental defaults import from meta
+    fo ?= pgrest.config?meta[collection]?fo
     id-column = pgrest.PrimaryFieldOf[collection]
     q[id-column] = delete q._id if q?_id and id-column
     cond = compile collection, q if q
