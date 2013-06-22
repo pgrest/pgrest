@@ -6,12 +6,16 @@ exports.new = (conString, config, cb) ->
     conString = "tcp://#conString"     unless conString is // :/ //
   plx <- plv8x.new conString
   <- plx.import-bundle \pgrest require.resolve(\../package.json)
-  <- plx.ap (-> plv8x.require \pgrest .boot), [config]
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean (plv8x.plv8x-lift "pgrest", "boot"), {+boot}
   throw err if err
+  plx.boot = (cb) -> plx.ap (-> plv8x.require \pgrest .boot), [config], cb
+  <- plx.boot
+  plx.conn.on \error ->
+    console.log \pgerror it
   <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
-      err, { rows:[ {ret} ] }? <- @conn.query "select pgrest_#method($1) as ret" [JSON.stringify param]
+      console.log \doing method
+      err, { rows:[ {ret}? ]? }? <- @conn.query "select pgrest_#method($1) as ret" [JSON.stringify param]
       return onError?(err) if err
       cb? ret
     err <- plx.conn.query plv8x._mk_func "pgrest_#method" {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", method
@@ -166,7 +170,7 @@ function _insert_statement(collection, insert-cols, insert-vals)
   todrop = []
   insert-vals = for v,i in insert-vals
     if !meta[insert-cols[i]]?
-      console.error "#{insert-cols[i]} not found, skipping"
+      console.warn "#{insert-cols[i]} not found, skipping"
       todrop.push i
       continue
     if meta[insert-cols[i]] is \ARRAY
@@ -229,8 +233,9 @@ export function boot(config)
     deferred = []
     ``pgrest = {}``
     ``console`` = do
-      log: -> plv8.elog(WARNING, ...arguments)
-      warn: -> plv8.elog(ERROR, ...arguments)
+      log: -> plv8.elog(INFO, ...arguments)
+      warn: -> plv8.elog(WARNING, ...arguments)
+      error: -> plv8.elog(ERROR, ...arguments)
     ``setTimeout`` = (fn, ms=0) -> deferred.push [fn, ms + (serial++ * 0.001)]
     ``pgprocess`` = do
         nextTick: (fn) -> setTimeout fn

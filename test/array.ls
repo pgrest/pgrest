@@ -23,27 +23,23 @@ describe 'pgrest', -> ``it``
     """
     done!
   .. 'insert objects', (done) ->
-    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [JSON.stringify collection: \pgrest_test, $: [
+    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [
       * field: \zz, value: <[z1]>
       * field: \z3, value: <[z2 z3]>
     ] ]
-    res = JSON.parse res
     expect res .to.deep.equal [1,1]
-    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
-    res = JSON.parse res
+    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
     expect res.paging.count .to.equal 3
     content = {[field, value] for {field,value} in res.entries}
     expect content.z3 .to.deep.equal <[z2 z3]>
     done!
   .. 'insert array', (done) ->
-    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [JSON.stringify collection: \pgrest_test, $: [
+    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [
       <[field value]>
       [\z4, <[val1 val2]>]
       [\z5, <[val3 val5]>]
     ] ]
-    res = JSON.parse res
     expect res .to.deep.equal [1,1]
-    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
-    res = JSON.parse res
+    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
     expect res.paging.count .to.equal 5
     done!

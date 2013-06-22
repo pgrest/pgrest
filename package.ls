@@ -24,7 +24,7 @@ engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
   trycatch: \0.1.x
-  plv8x: \0.4.x
+  plv8x: \0.5.x
   express: \3.1.x
   cors: \0.0.x
   gzippo: \0.2.x

@@ -8,9 +8,10 @@ export function route (path, fn)
       | \number => resp.send it it
       | \object => resp.send 200 JSON.stringify it
       | \string => resp.send "#it"
+    console.log \====trycatch
     trycatch do
-      -> done fn.call req, -> done it
-      -> it.=message if it instanceof Error; switch typeof it
+      -> console.log \herewego; fn.call req, -> done it
+      -> console.log \caught?; it.=message if it instanceof Error; console.log \zzzerr it; switch typeof it
       | \number => resp.send it, { error: it }
       | \object => resp.send 500 it
       | \string => (if it is /^\d\d\d$/
@@ -21,7 +22,6 @@ export function route (path, fn)
 export function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
   TypeMap[typeof! content || \plv8x.json]
-
 
 export function mount-model (plx, schema, name, route=route)
   route "#name" !->
@@ -35,7 +35,14 @@ export function mount-model (plx, schema, name, route=route)
     param.$ = @body # TODO: Accept CSV as PUT/POST Content-Type
     # text/csv;header=present
     # text/csv;header=absent
-    plx[method].call plx, param, it, -> throw "#it"
+    console.log \toquery method
+    console.log plx.conn.connection.stream.readyState
+    plx[method].call plx, param, it, (error) ->
+      if error is /Stream unexpectedly ended/
+        console.log \grrr
+      console.log \error error
+      console.log plx.conn?stream?readyState
+      it { error }
   route "#name/:_id" !->
     param = l: 1 fo: yes collection: "#schema.#name" q: { _id: @params._id }
     method = switch @method
@@ -89,7 +96,7 @@ export function mount-default (plx, schema, route=route, cb)
         cols[key] = derive-type row[key], cols[key]
     do-insert = ~>
       mount-model plx, schema, name, route
-      plx.insert param, done, -> throw "#it"
+      plx.insert param, done, (error) -> done { error }
     if @method is \POST
       plx.query """
         CREATE TABLE "#name" (#{

@@ -26,25 +26,21 @@ describe 'pgrest', -> ``it``
     """
     done!
   .. 'insert objects', (done) ->
-    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [JSON.stringify collection: \pgrest_test, $: [
+    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [
       * field: \zz, value: \z1
       * field: \z3, value: \z2
     ] ]
-    res = JSON.parse res
     expect res .to.deep.equal [1,1]
-    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
-    res = JSON.parse res
+    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
     expect res.paging.count .to.equal 3
     done!
   .. 'insert array', (done) ->
-    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [JSON.stringify collection: \pgrest_test, $: [
+    [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [
       <[field value]>
       <[ z4 v4 ]>
       <[ z5 v5 ]>
     ] ]
-    res = JSON.parse res
     expect res .to.deep.equal [1,1]
-    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
-    res = JSON.parse res
+    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
     expect res.paging.count .to.equal 5
     done!

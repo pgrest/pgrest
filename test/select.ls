@@ -26,7 +26,6 @@ describe 'pgrest', -> ``it``
     """
     done!
   .. 'select', (done) ->
-    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [JSON.stringify collection: \pgrest_test]
-    res = JSON.parse res
+    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
     expect res.paging.count .to.equal 1
     done!
