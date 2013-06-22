@@ -9,13 +9,14 @@ exports.new = (conString, config, cb) ->
   err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean (plv8x.plv8x-lift "pgrest", "boot"), {+boot}
   throw err if err
   plx.boot = (cb) -> plx.ap (-> plv8x.require \pgrest .boot), [config], cb
-  <- plx.boot
   plx.conn.on \error ->
     console.log \pgerror it
+  <- plx.boot
   <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
-      console.log \doing method
-      err, { rows:[ {ret}? ]? }? <- @conn.query "select pgrest_#method($1) as ret" [JSON.stringify param]
+      err, {rows} <- @conn.query "select pgrest_#method($1) as ret" [param]
+      ret = rows.0.ret
+
       return onError?(err) if err
       cb? ret
     err <- plx.conn.query plv8x._mk_func "pgrest_#method" {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", method
