@@ -14,10 +14,10 @@ exports.new = (conString, config, cb) ->
   <- plx.boot
   <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
-      err, {rows} <- @conn.query "select pgrest_#method($1) as ret" [param]
+      err, {rows}? <- @conn.query "select pgrest_#method($1) as ret" [param]
+      return onError?(err) if err
       ret = rows.0.ret
 
-      return onError?(err) if err
       cb? ret
     err <- plx.conn.query plv8x._mk_func "pgrest_#method" {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", method
     throw err if err
