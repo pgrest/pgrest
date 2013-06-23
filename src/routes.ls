@@ -71,7 +71,7 @@ export function mount-default (plx, schema, route=route, cb)
       mount-model plx, scm, tbl, route
   default-schema ?= \public
 
-  route "" -> cols
+  route "", !(done) -> done cols
   route ":name", !(done) ->
     throw 404 if @method in <[ GET DELETE ]> # TODO: If not exist, remount
     throw 405 if @method not in <[ POST PUT ]>
