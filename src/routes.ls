@@ -8,15 +8,20 @@ export function route (path, fn)
       | \number => resp.send it it
       | \object => resp.send 200 JSON.stringify it
       | \string => resp.send "#it"
-    trycatch do
-      -> fn.call req, -> done it
-      -> it.=message if it instanceof Error; switch typeof it
+    handle-error = -> it.=message if it instanceof Error; switch typeof it
       | \number => resp.send it, { error: it }
       | \object => resp.send 500 it
       | \string => (if it is /^\d\d\d$/
         then resp.send it, { error: it }
         else resp.send 500 { error: "#it" })
       | _       => resp.send 500 { error: "#it" }
+    trycatch do
+      -> fn.call req, ->
+        if it.error
+          handle-error that
+        else
+          done it
+      handle-error
 
 export function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
@@ -46,7 +51,7 @@ export function mount-model (plx, schema, name, route=route)
     | \DELETE => \remove
     | _       => throw 405
     param.$ = @body
-    plx[method].call plx, param, it, -> throw "#it"
+    plx[method].call plx, param, it, (error) -> it { error }
   return name
 
 export function mount-default (plx, schema, route=route, cb)
