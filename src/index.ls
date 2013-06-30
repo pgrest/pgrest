@@ -41,7 +41,7 @@ walk = (model, meta) ->
 compile = (model, field) ->
     {$query, $from, $and, $} = field ? {}
     switch
-    | $from? => let from-table = qq "#{$from}s", model-table = qq "#{model}s"
+    | $from? => let from-table = qq "#{$from}", model-table = qq "#{model}"
         """
         (SELECT COALESCE(ARRAY_TO_JSON(ARRAY_AGG(_)), '[]') FROM (SELECT * FROM #from-table
             WHERE #{ qq "_#model" } = #model-table."_id" AND #{

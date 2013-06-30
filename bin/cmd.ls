@@ -14,7 +14,7 @@ if pgsock
 
 pgrest = require \..
 plx <- pgrest .new conString, {}
-{mount-default}:routes = pgrest.routes!
+{mount-default,with-prefix} = pgrest.routes!
 
 process.exit 0 if argv.boot
 {port=3000, prefix="/collections", host="127.0.0.1"} = argv
@@ -29,15 +29,7 @@ app.use gzippo.compress!
 app.use express.json!
 app.use connect-csv header: \guess
 
-route = (path, fn) ->
-  fullpath = if path? then "#{
-      switch path.0
-      | '/'  => ''
-      | _    => "#prefix/"
-    }#path" else prefix - //[^/]+/?$//
-  app.all fullpath, cors!, routes.route path, fn
-
-cols <- mount-default plx, argv.schema, route
+cols <- mount-default plx, argv.schema, with-prefix prefix, app
 
 app.listen port, host
 console.log "Available collections:\n#{ cols * ' ' }"

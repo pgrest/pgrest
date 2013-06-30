@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var optimist, plv8x, argv, conString, ref$, pgsock, pgrest, replace$ = ''.replace, join$ = [].join;
+var optimist, plv8x, argv, conString, ref$, pgsock, pgrest, join$ = [].join;
 optimist = require('optimist');
 plv8x = require('plv8x');
 argv = optimist.argv;
@@ -17,8 +17,8 @@ if (pgsock) {
 }
 pgrest = require('..');
 pgrest['new'](conString, {}, function(plx){
-  var routes, mountDefault, port, ref$, prefix, host, express, app, cors, gzippo, connectCsv, route;
-  routes = pgrest.routes(), mountDefault = routes.mountDefault;
+  var ref$, mountDefault, withPrefix, port, prefix, host, express, app, cors, gzippo, connectCsv;
+  ref$ = pgrest.routes(), mountDefault = ref$.mountDefault, withPrefix = ref$.withPrefix;
   if (argv.boot) {
     process.exit(0);
   }
@@ -40,21 +40,7 @@ pgrest['new'](conString, {}, function(plx){
   app.use(connectCsv({
     header: 'guess'
   }));
-  route = function(path, fn){
-    var fullpath;
-    fullpath = path != null
-      ? (function(){
-        switch (path[0]) {
-        case '/':
-          return '';
-        default:
-          return prefix + "/";
-        }
-      }()) + "" + path
-      : replace$.call(prefix, /[^\/]+\/?$/, '');
-    return app.all(fullpath, cors(), routes.route(path, fn));
-  };
-  return mountDefault(plx, argv.schema, route, function(cols){
+  return mountDefault(plx, argv.schema, withPrefix(prefix, app), function(cols){
     app.listen(port, host);
     console.log("Available collections:\n" + join$.call(cols, ' '));
     return console.log("Serving `" + conString + "` on http://" + host + ":" + port + prefix);

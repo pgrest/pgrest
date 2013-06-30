@@ -33,20 +33,11 @@ describe 'pgrest' -> ``it``
     """
     done!
   .. 'express routes', (done) ->
-    {mount-default}:routes = pgrest.routes!
+    {mount-default,with-prefix} = pgrest.routes!
     app := express!
     app.use express.cookieParser!
     app.use express.json!
-    prefix = '/collections'
-    route = (path, fn) ->
-      fullpath = if path? then "#{
-          switch path.0
-          | void => prefix
-          | '/'  => ''
-          | _    => "#prefix/"
-        }#path" else prefix - //[^/]+/?$//
-      app.all fullpath, routes.route path, fn
-    cols <- mount-default plx, null, route
+    cols <- mount-default plx, null, with-prefix '/collections', app
     done!
   .. 'issue', (done) ->
     supertest app
