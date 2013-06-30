@@ -39,12 +39,12 @@ describe 'pgrest' -> ``it``
     app.use express.json!
     prefix = '/collections'
     route = (path, fn) ->
-      fullpath = "#{
+      fullpath = if path? then "#{
           switch path.0
           | void => prefix
           | '/'  => ''
           | _    => "#prefix/"
-        }#path"
+        }#path" else prefix - //[^/]+/?$//
       app.all fullpath, routes.route path, fn
     cols <- mount-default plx, null, route
     done!
