@@ -31,6 +31,7 @@ dependencies:
   \connect-csv : \*
 devDependencies:
   mocha: \*
+  supertest: \0.7.x
   chai: \*
   LiveScript: \1.1.1
 optionalDependencies: {}
