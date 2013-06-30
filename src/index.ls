@@ -115,7 +115,7 @@ export function select(param)
     fo ?= meta?fo
     f ?= meta?f
     s ?= meta?s
-    id-column = pgrest.PrimaryFieldOf[collection]
+    id-column = pgrest.PrimaryFieldOf[meta?as ? collection]
     q[id-column] = delete q._id if q?_id and id-column
     cond = compile collection, q if q
     if pgrest.ColumnsOf[collection]
