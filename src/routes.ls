@@ -27,8 +27,8 @@ export function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
   TypeMap[typeof! content || \plv8x.json]
 
-export function mount-model (plx, schema, name, route=route)
-  route "#name" !->
+export function mount-model (plx, schema, name, _route=route)
+  _route "#name" !->
     param = @query{ l, sk, c, s, q, fo, f, u, delay } <<< collection: "#schema.#name"
     method = switch @method
     | \GET    => \select
@@ -43,7 +43,7 @@ export function mount-model (plx, schema, name, route=route)
       if error is /Stream unexpectedly ended/
         console.log \TODOreconnect
       it { error }
-  route "#name/:_id" !->
+  _route "#name/:_id" !->
     param = l: 1 fo: yes collection: "#schema.#name" q: { _id: @params._id }
     method = switch @method
     | \GET    => \select
@@ -54,7 +54,7 @@ export function mount-model (plx, schema, name, route=route)
     plx[method].call plx, param, it, (error) -> it { error }
   return name
 
-export function mount-default (plx, schema, route=route, cb)
+export function mount-default (plx, schema, _route=route, cb)
   schema-cond = if schema
       "IN ('#{schema}')"
   else
@@ -73,11 +73,11 @@ export function mount-default (plx, schema, route=route, cb)
       console.log "#scm.#tbl not loaded, #tbl already in use"
     else
       seen[tbl] = true
-      mount-model plx, scm, tbl, route
+      mount-model plx, scm, tbl, _route
   default-schema ?= \public
 
-  route "", !(done) -> done cols
-  route ":name", !(done) ->
+  _route "", !(done) -> done cols
+  _route ":name", !(done) ->
     throw 404 if @method in <[ GET DELETE ]> # TODO: If not exist, remount
     throw 405 if @method not in <[ POST PUT ]>
     { name } = @params
@@ -95,7 +95,7 @@ export function mount-default (plx, schema, route=route, cb)
       for key in Object.keys row | row[key]?
         cols[key] = derive-type row[key], cols[key]
     do-insert = ~>
-      mount-model plx, schema, name, route
+      mount-model plx, schema, name, _route
       plx.insert param, done, (error) -> done { error }
     if @method is \POST
       plx.query """
@@ -106,6 +106,6 @@ export function mount-default (plx, schema, route=route, cb)
     else
       do-insert!
 
-  route '/runCommand' -> throw "Not implemented yet"
+  _route '/runCommand' -> throw "Not implemented yet"
 
   cb cols
