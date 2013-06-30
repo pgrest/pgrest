@@ -29,7 +29,7 @@ app.use gzippo.compress!
 app.use express.json!
 app.use connect-csv header: \guess
 
-cols <- mount-default plx, argv.schema, with-prefix prefix, app
+cols <- mount-default plx, argv.schema, with-prefix prefix, -> app.all.apply app, &
 
 app.listen port, host
 console.log "Available collections:\n#{ cols * ' ' }"

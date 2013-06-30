@@ -23,7 +23,7 @@ export function route (path, fn)
           done it
       handle-error
 
-export function with-prefix (prefix, app)
+export function with-prefix (prefix, cb)
   (path, fn) ->
     fullpath = if path? then "#{
         switch path.0
@@ -31,7 +31,7 @@ export function with-prefix (prefix, app)
         | '/'  => ''
         | _    => "#prefix/"
       }#path" else prefix - //[^/]+/?$//
-    app.all fullpath, route path, fn
+    cb fullpath, route path, fn
 
 export function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json

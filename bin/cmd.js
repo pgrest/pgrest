@@ -40,7 +40,9 @@ pgrest['new'](conString, {}, function(plx){
   app.use(connectCsv({
     header: 'guess'
   }));
-  return mountDefault(plx, argv.schema, withPrefix(prefix, app), function(cols){
+  return mountDefault(plx, argv.schema, withPrefix(prefix, function(){
+    return app.all.apply(app, arguments);
+  }), function(cols){
     app.listen(port, host);
     console.log("Available collections:\n" + join$.call(cols, ' '));
     return console.log("Serving `" + conString + "` on http://" + host + ":" + port + prefix);

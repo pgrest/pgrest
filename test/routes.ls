@@ -37,7 +37,7 @@ describe 'pgrest' -> ``it``
     app := express!
     app.use express.cookieParser!
     app.use express.json!
-    cols <- mount-default plx, null, with-prefix '/collections', app
+    cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
     done!
   .. 'issue', (done) ->
     supertest app
