@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var optimist, plv8x, argv, conString, ref$, pgsock, pgrest, join$ = [].join;
+var optimist, plv8x, argv, conString, ref$, pgsock, pgrest, replace$ = ''.replace, join$ = [].join;
 optimist = require('optimist');
 plv8x = require('plv8x');
 argv = optimist.argv;
@@ -42,16 +42,16 @@ pgrest['new'](conString, {}, function(plx){
   }));
   route = function(path, fn){
     var fullpath;
-    fullpath = (function(){
-      switch (path[0]) {
-      case void 8:
-        return prefix;
-      case '/':
-        return '';
-      default:
-        return prefix + "/";
-      }
-    }()) + "" + path;
+    fullpath = path != null
+      ? (function(){
+        switch (path[0]) {
+        case '/':
+          return '';
+        default:
+          return prefix + "/";
+        }
+      }()) + "" + path
+      : replace$.call(prefix, /[^\/]+\/?$/, '');
     return app.all(fullpath, cors(), routes.route(path, fn));
   };
   return mountDefault(plx, argv.schema, route, function(cols){

@@ -30,12 +30,11 @@ app.use express.json!
 app.use connect-csv header: \guess
 
 route = (path, fn) ->
-  fullpath = "#{
+  fullpath = if path? then "#{
       switch path.0
-      | void => prefix
       | '/'  => ''
       | _    => "#prefix/"
-    }#path"
+    }#path" else prefix - //[^/]+/?$//
   app.all fullpath, cors!, routes.route path, fn
 
 cols <- mount-default plx, argv.schema, route
