@@ -8,7 +8,10 @@ export function route (path, fn)
       | \number => resp.send it it
       | \object => resp.send 200 JSON.stringify it
       | \string => resp.send "#it"
-    handle-error = -> it.=message if it instanceof Error; switch typeof it
+    handle-error = ->
+      it.=message if it instanceof Error
+      it -= /^Error: / if \string is typeof it
+      switch typeof it
       | \number => resp.send it, { error: it }
       | \object => resp.send 500 it
       | \string => (if it is /^\d\d\d$/
