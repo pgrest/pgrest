@@ -209,8 +209,11 @@ export function upsert(param)
     # XXX derive q from $set and table constraints
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, u, $={}, q, delay} = param
-    {$set={}} = $
+    {$set=$} = $
     refresh-meta collection
+    # if _-only models
+    # $set = {_: $set}
+
     cond = compile collection, q if q
     cols = [k for k of $set]
     vals = [v for _,v of $set]
