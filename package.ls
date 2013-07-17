@@ -20,6 +20,11 @@ scripts:
     env PATH="./node_modules/.bin:$PATH" lsc -bc bin &&
     env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src
   """
+  postinstall: """
+    env PATH="./node_modules/.bin:$PATH" lsc -cj package.ls &&
+    env PATH="./node_modules/.bin:$PATH" lsc -bc bin &&
+    env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src
+  """
 engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
