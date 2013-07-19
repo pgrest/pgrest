@@ -4,7 +4,7 @@ author:
   email: 'clkao@clkao.org'
 name: 'pgrest'
 description: 'enable REST in postgres'
-version: '0.0.3'
+version: '0.0.4'
 main: \lib/index.js
 bin:
   pgrest: 'bin/cmd.js'
@@ -32,7 +32,6 @@ dependencies:
   plv8x: \0.5.x
   express: \3.1.x
   cors: \0.0.x
-  gzippo: \0.2.x
   \connect-csv : \*
 devDependencies:
   mocha: \*

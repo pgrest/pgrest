@@ -22,10 +22,8 @@ express = try require \express
 throw "express required for starting server" unless express
 app = express!
 require! cors
-require! gzippo
 require! \connect-csv
 
-app.use gzippo.compress!
 app.use express.json!
 app.use connect-csv header: \guess
 
