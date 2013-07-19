@@ -210,9 +210,9 @@ export function upsert(param)
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, u, $={}, q, delay} = param
     {$set=$} = $
-    refresh-meta collection
 
     # Updating _-only write-through views
+    meta = refresh-meta collection
     $set = {_: $set} if meta?_ is /\bjson$/
 
     cond = compile collection, q if q
