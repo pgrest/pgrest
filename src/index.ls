@@ -211,8 +211,9 @@ export function upsert(param)
     {collection, u, $={}, q, delay} = param
     {$set=$} = $
     refresh-meta collection
-    # if _-only models
-    # $set = {_: $set}
+
+    # Updating _-only write-through views
+    $set = {_: $set} if meta?_ is /\bjson$/
 
     cond = compile collection, q if q
     cols = [k for k of $set]
