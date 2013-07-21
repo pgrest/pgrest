@@ -112,10 +112,14 @@ export function mount-default (plx, schema, _route=route, cb)
       mount-model plx, schema, name, _route
       plx.insert param, done, (error) -> done { error }
     if @method is \POST
+      cols_defs = [ "\"#col\" #typ" for col, typ of cols ]
+      if (@get "x-pgrest-create-identity-key") is \yes
+        cols_defs = [ "\"_id\" SERIAL UNIQUE" ] ++ cols_defs
+        
       plx.query """
         CREATE TABLE "#name" (#{
-          [ "\"#col\" #typ" for col, typ of cols ] * ",\n"
-        })
+          cols_defs * ",\n"
+        })        
       """ do-insert
     else
       do-insert!
