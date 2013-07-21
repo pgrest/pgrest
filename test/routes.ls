@@ -16,6 +16,7 @@ describe 'pgrest' -> ``it``
   .. 'test data', (done) ->
     res <- plx.query """
     DROP TABLE IF EXISTS issue;
+    DROP TABLE IF EXISTS nonexist_table;
     DROP TABLE IF EXISTS initiative;
     CREATE TABLE issue (
         id int not null primary key,
@@ -48,3 +49,17 @@ describe 'pgrest' -> ``it``
       .end (err, res) ->
         expect res.body.entries.length .to.equal 1
         done!
+  .. 'auto-id', (done) ->
+    supertest app
+      .post '/collections/nonexist_table'
+      .send [{username: \u1}, {username: \u2}]
+      .set 'Accept', 'application/json'
+      .set 'x-pgrest-create-identity-key', 'yes'
+      .end (err, res) ->
+        expect res.text .to.equal '[1,1]'
+        cols <- plx.query "SELECT * FROM nonexist_table"
+        cols.map ->
+          expect it .to.have.property \_id
+        done!
+  
+      
