@@ -50,6 +50,16 @@ MYDB=$ select pgrest_select('{"collection": "sometable", "l": 10}');
 The parameter is similar to MongoLab's REST API for listing documents:
 https://support.mongolab.com/entries/20433053-rest-api-for-mongodb
 
+# Run test:
+
+```
+createdb test
+export TESTDBUSERNAME=postgres # optional
+export TESTDBNAME=test
+npm i
+npm run test
+```
+
 # Web server support
 
 * Perl: [Plack::App::PgREST](https://github.com/clkao/Plack-App-PgREST)

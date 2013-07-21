@@ -1,11 +1,11 @@
 should = (require \chai).should!
-
+test_conString = (require \./testlib).get_dbcnn!
 expect = (require \chai).expect
 var pgrest, plx
 describe 'pgrest', -> ``it``
   .. 'loaded successfully.', (done) ->
     # Load home page
-    conString = "tcp://localhost/#{ process.env.TESTDBNAME }"
+    conString = test_conString
     pgrest := require \..
     pgrest.should.be.ok
     _plx <- pgrest.new conString, {foo: \bar}
