@@ -1,6 +1,12 @@
 ``#!/usr/bin/env node``
 require! {optimist, plv8x}
 {argv} = optimist
+
+if argv.version
+  {version} = require require.resolve \../package.json
+  console.log "PgRest v#{version}"
+  process.exit 0
+
 conString = argv.db or process.env['PLV8XCONN'] or process.env['PLV8XDB'] or process.env.TESTDBNAME or process.argv?2
 unless conString
   console.log "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
