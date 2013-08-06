@@ -1,0 +1,10 @@
+{
+    "usePackageLS": true,
+    "steps": ["FindVersion", "ChangeVersion", "CheckChangeLog", "Commit", "Tag", "Publish"],
+    "CheckChangeLog": {
+        "files": ["History.md"]
+    },
+    "ChangeVersion": {
+        "file": "package.ls"
+    }
+}
