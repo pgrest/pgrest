@@ -138,7 +138,9 @@ export function select(param)
 
     query += " ORDER BY " + order-by s if s
     maybe_ = ->
-      while it?_? => it.=_
+      while it?_?
+        it.=_
+        it = JSON.parse it if \string is typeof it
       return it
     return maybe_ (plv8.execute "#query limit $1 offset $2" [l, sk])?0 if fo
     do
