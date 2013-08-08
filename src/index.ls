@@ -219,7 +219,11 @@ export function upsert(param)
 
     cond = compile collection, q if q
     cols = [k for k of $set]
-    vals = [v for _,v of $set]
+    vals = for _,v of $set
+      if \object is typeof v
+        JSON.stringify v
+      else
+        v
     insert-cols = cols ++ [k for k of q]
     insert-vals = vals ++ [v for _, v of q]
     updates = ["#{qq it} = $#{i+1}" for it, i in cols]
