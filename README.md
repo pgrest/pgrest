@@ -40,6 +40,7 @@ sudo pgxn install plv8
 npm i
 npm run prepublish
 
+# replace MYDB with an database name, or run "createdb MYDB" to make a new one
 ./node_modules/.bin/plv8x --db tcp://localhost/MYDB --import pgrest:./package.json
 ./node_modules/.bin/plv8x --db tcp://localhost/MYDB --inject 'plv8x_json pgrest_select(plv8x_json)=pgrest:pgrest_select'
 
