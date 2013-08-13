@@ -30,7 +30,7 @@ scripts:
 engines: {node: '*'}
 dependencies:
   optimist: \0.3.x
-  trycatch: \0.2.x
+  trycatch: \0.2.4
   plv8x: \0.5.x
   express: \3.1.x
   cors: \0.0.x
