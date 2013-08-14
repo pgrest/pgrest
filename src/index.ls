@@ -220,7 +220,7 @@ export function upsert(param)
     cond = compile collection, q if q
     cols = [k for k of $set]
     vals = for _,v of $set
-      if \object is typeof v
+      if \Object is typeof! v
         JSON.stringify v
       else
         v
