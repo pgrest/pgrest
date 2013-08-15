@@ -13,6 +13,8 @@ WARNING: this is work in progress and everything is likely to change!
 * capable of loading Node.js modules
 * compatible with MongoLab's REST API
 
+Want to learn more? See the [https://github.com/clkao/pgrest/wiki](wiki).
+
 # Installation
 
 You need to install the plv8js extension for postgresql.  See [Installation](https://github.com/clkao/pgrest/wiki/Installation) for details.  PostgreSQL 9.0 is required.  We recommend using 9.2.
@@ -57,7 +59,9 @@ npm i
 npm run test
 ```
 
-# Web server support
+# Additional web server support
+
+In addition to the bundled `pgrest` frontend, you can also use the following frontend:
 
 * Perl: [Plack::App::PgREST](https://github.com/clkao/Plack-App-PgREST)
 * Using ngx_postgres (experimental)
