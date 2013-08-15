@@ -34,12 +34,16 @@ Once you are have plv8js. use npm to install pgrest:
 
 You can now access foo content with http://127.0.0.1:3000/collections/foo
 
-Try:
+## Reading:
 
     curl http://127.0.0.1:3000/collections/foo?q={"id":1}
 
 The parameter is similar to MongoLab's REST API for listing documents:
 https://support.mongolab.com/entries/20433053-rest-api-for-mongodb
+
+## Writing:
+
+    echo '{"id": 5,"info": {"counter":5} }' | curl -D - -H 'Content-Type: application/json' -X POST -d @- http://localhost:3000/collections/foo
 
 # Developing
 
