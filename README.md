@@ -5,15 +5,6 @@ pgrest
 
 WARNING: this is work in progress and everything is likely to change!
 
-# Slides in lieu of a proper documentation
-
-<http://www.audreyt.org/newdict/jekyller/_public/>
-
-The first section describes plv8x, and the later sections has some real-world
-examples such as:
-
-<http://www.audreyt.org/newdict/jekyller/_public/?full#pgrest-mongolab-api-server>
-
 # PgREST is...
 
 * a JSON document store
@@ -22,36 +13,37 @@ examples such as:
 * capable of loading Node.js modules
 * compatible with MongoLab's REST API
 
-# Install plv8js extension for postgresql
+# Installation
 
-Note: Requires postgresql 9.1 or later.  9.0 will be supported soon.
+You need to install the plv8js extension for postgresql.  See [Installation](https://github.com/clkao/pgrest/wiki/Installation) for details.  PostgreSQL 9.0 is required.  We recommend using 9.2.
 
-```
-# for older distros: sudo add-apt-repository ppa:martinkl/ppa
-sudo apt-get install libv8-dev
+Once you are have plv8js. use npm to install pgrest:
 
-sudo easy_install pgxnclient
-sudo pgxn install plv8
-```
+    % npm i -g pgrest
 
-# Try pgrest:
+# Trying pgrest:
 
-```
-npm i
-npm run prepublish
+    % psql test
+    test=# CREATE TABLE foo (id int, info json);
+    CREATE TABLE
+    test=# INSERT INTO foo VALUES (1, '{"f1":1,"f2":true,"f3":"Hi I''m \"Daisy\""}');
+    INSERT 0 1
 
-# replace MYDB with an database name, or run "createdb MYDB" to make a new one
-./node_modules/.bin/plv8x --db tcp://localhost/MYDB --import pgrest:./package.json
-./node_modules/.bin/plv8x --db tcp://localhost/MYDB --inject 'plv8x_json pgrest_select(plv8x_json)=pgrest:pgrest_select'
+    % pgrest --db test
+    Serving `test` on http://127.0.0.1:3000/collections
 
-# then this will give you json representation of "sometable":
-MYDB=$ select pgrest_select('{"collection": "sometable", "l": 10}');
-```
+You can now access foo content with http://127.0.0.1:3000/collections/foo
+
+Try:
+
+    curl http://127.0.0.1:3000/collections/foo?q={"id":1}
 
 The parameter is similar to MongoLab's REST API for listing documents:
 https://support.mongolab.com/entries/20433053-rest-api-for-mongodb
 
-# Run test:
+# Developing
+
+## Runing test:
 
 ```
 createdb test
@@ -64,3 +56,4 @@ npm run test
 # Web server support
 
 * Perl: [Plack::App::PgREST](https://github.com/clkao/Plack-App-PgREST)
+* Using ngx_postgres (experimental)
