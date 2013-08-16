@@ -102,7 +102,14 @@ order-by = (fields) ->
     sort * ", "
 
 export routes = -> require \./routes
-export function pgrest_select(param)
+
+function with-pgparam(fn)
+  (param) ->
+    pgparam = delete param.pgparam
+    pgrest <<< {pgparam}
+    fn param
+
+export pgrest_select = with-pgparam (param) ->
     for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
     for p in <[q s f]>  | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, l = 30, sk = 0, q, c, s, f, fo} = param
@@ -145,7 +152,7 @@ export function pgrest_select(param)
         query: cond
 pgrest_select.$plv8x = '(plv8x.json):plv8x.json'
 
-export function pgrest_remove(param)
+export pgrest_remove = with-pgparam (param) ->
   for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
   {collection, $, q} = param
   cond = compile collection, q if q
@@ -154,7 +161,7 @@ export function pgrest_remove(param)
   return plv8.execute query
 pgrest_remove.$plv8x = '(plv8x.json):plv8x.json'
 
-export function pgrest_replace(param)
+export pgrest_replace = with-pgparam (param) ->
   remove param
   return insert param
 pgrest_replace.$plv8x = '(plv8x.json):plv8x.json'
@@ -188,7 +195,7 @@ function _insert_statement(collection, insert-cols, insert-vals)
     values.pop!
   ["INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{values.join \,})", insert-vals]
 
-export function pgrest_insert(param)
+export pgrest_insert = with-pgparam (param) ->
   {collection, $} = param
 
   refresh-meta collection
@@ -205,7 +212,7 @@ export function pgrest_insert(param)
       plv8.execute query, insert-vals
 pgrest_insert.$plv8x = '(plv8x.json):plv8x.json'
 
-export function pgrest_upsert(param)
+export pgrest_upsert = with-pgparam (param) ->
     for p in <[u delay]> | typeof param[p] is \string => param[p] = parseInt param[p]
     # XXX derive q from $set and table constraints
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
