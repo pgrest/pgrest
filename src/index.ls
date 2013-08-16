@@ -5,9 +5,8 @@ exports.new = (conString, config, cb) ->
     conString = "localhost/#conString" unless conString is // / //
     conString = "tcp://#conString"     unless conString is // :/ //
   plx <- plv8x.new conString
-  <- plx.import-bundle \pgrest require.resolve(\../package.json)
-  err <- plx.conn.query plv8x._mk_func \pgrest_boot {config: \plv8x.json} \boolean (plv8x.plv8x-lift "pgrest", "boot"), {+boot}
-  throw err if err
+  next <- plx.import-bundle-funcs \pgrest require.resolve(\../package.json)
+  <- next!
   plx.boot = (cb) -> plx.ap (-> plv8x.require \pgrest .boot), [config], cb
   plx.conn.on \error ->
     console.log \pgerror it
@@ -17,10 +16,7 @@ exports.new = (conString, config, cb) ->
       err, {rows}? <- @conn.query "select pgrest_#method($1) as ret" [param]
       return onError?(err) if err
       ret = rows.0.ret
-
       cb? ret
-    err <- plx.conn.query plv8x._mk_func "pgrest_#method" {param: \plv8x.json} \plv8x.json plv8x.plv8x-lift "pgrest", method
-    throw err if err
   return cb plx if cb
   return plx.conn.end!
 
@@ -106,7 +102,7 @@ order-by = (fields) ->
     sort * ", "
 
 export routes = -> require \./routes
-export function select(param)
+export function pgrest_select(param)
     for p in <[l sk c]> | typeof param[p] is \string => param[p] = parseInt param[p]
     for p in <[q s f]>  | typeof param[p] is \string => param[p] = JSON.parse param[p]
     {collection, l = 30, sk = 0, q, c, s, f, fo} = param
@@ -147,19 +143,21 @@ export function select(param)
         paging: { count, l, sk }
         entries: plv8.execute "#query limit $1 offset $2" [l, sk] .map maybe_
         query: cond
+pgrest_select.$plv8x = '(plv8x.json):plv8x.json'
 
-export function remove(param)
+export function pgrest_remove(param)
   for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
   {collection, $, q} = param
   cond = compile collection, q if q
   query = "DELETE FROM #{ qq collection }"
   query += " WHERE #cond" if cond?
   return plv8.execute query
+pgrest_remove.$plv8x = '(plv8x.json):plv8x.json'
 
-export function replace(param)
+export function pgrest_replace(param)
   remove param
   return insert param
-
+pgrest_replace.$plv8x = '(plv8x.json):plv8x.json'
 
 function refresh-meta(collection)
   pgrest.Meta ?= {}
@@ -190,7 +188,7 @@ function _insert_statement(collection, insert-cols, insert-vals)
     values.pop!
   ["INSERT INTO #{ qq collection }(#{insert-cols.map qq .join \,}) VALUES (#{values.join \,})", insert-vals]
 
-export function insert(param)
+export function pgrest_insert(param)
   {collection, $} = param
 
   refresh-meta collection
@@ -205,8 +203,9 @@ export function insert(param)
       continue unless insert-cols.length
       [query, insert-vals] = _insert_statement collection, insert-cols, [v for _, v of $set]
       plv8.execute query, insert-vals
+pgrest_insert.$plv8x = '(plv8x.json):plv8x.json'
 
-export function upsert(param)
+export function pgrest_upsert(param)
     for p in <[u delay]> | typeof param[p] is \string => param[p] = parseInt param[p]
     # XXX derive q from $set and table constraints
     for p in <[q]> | typeof param[p] is \string => param[p] = JSON.parse param[p]
@@ -241,6 +240,7 @@ export function upsert(param)
           throw e unless e is /violates unique constraint/
         return {+inserted} if res
 
+pgrest_upsert.$plv8x = '(plv8x.json):plv8x.json'
 
 export function boot(config)
     serial = 0
@@ -266,6 +266,9 @@ export function boot(config)
 
     pgrest <<< { PrimaryFieldOf, ColumnsOf, config }
     return true
+export pgrest_boot = boot
+pgrest_boot.$plv8x = '(plv8x.json):boolean'
+pgrest_boot.$bootstrap = true
 
 const SQL_PrimaryFieldInfo = """
 SELECT t.table_schema || '.' || t.table_name AS key,
