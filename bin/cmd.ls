@@ -31,10 +31,7 @@ get_opts = ->
     if cfg.dbconn and cfg.dbname
       conString = "#{cfg.dbconn}/#{cfg.dbname}"
     else if argv.pgsock
-      # what is this???
-      conString = do
-        host: pgsock
-        database: conString      
+      conString = "postgres:localhost/#{pgsock}"
     else
       conString = argv.db \
         or process.env['PLV8XCONN'] \
