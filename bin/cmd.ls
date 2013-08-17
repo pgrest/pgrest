@@ -1,8 +1,21 @@
 ``#!/usr/bin/env node``
-require! {optimist, plv8x}
+# Import
+# -------------------------
+require! optimist
+require! plv8x
 require! path
-{argv} = optimist
 
+express = try require \express
+throw "express required for starting server" unless express
+
+require! cors
+require! \connect-csv
+
+pgrest = require \..
+
+# Helper Functions
+# @FIXME: move these fucntion to src and added testcases.
+# --------------------------
 ensured_opts = ->
   unless it.conString
     console.log "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
@@ -35,30 +48,24 @@ get_opts = ->
     conString: get_db_conn!
     meta: cfg.meta or {}
     schema: argv.schema or cfg.schema or 'public'
+  console.log opts
   ensured_opts opts
 
 # Main
 # --------------------------------------------------------------------
+{argv} = optimist
 if argv.version
   {version} = require require.resolve \../package.json
   console.log "PgRest v#{version}"
   process.exit 0
 
 opts = get_opts!
-
-pgrest = require \..
-
 plx <- pgrest .new opts.conString, opts.meta
 {mount-default,with-prefix} = pgrest.routes!
 
 process.exit 0 if argv.boot
 
-express = try require \express
-throw "express required for starting server" unless express
 app = express!
-require! cors
-require! \connect-csv
-
 app.use express.json!
 app.use connect-csv header: \guess
 
