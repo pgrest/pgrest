@@ -5,3 +5,5 @@ node_modules/*
 *~
 bin/*.js
 lib
+config.json
+config.ls
