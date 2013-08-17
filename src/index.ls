@@ -105,8 +105,7 @@ export routes = -> require \./routes
 
 function with-pgparam(fn)
   (param) ->
-    pgparam = delete param.pgparam
-    pgrest <<< {pgparam}
+    pgrest_param_setobj delete param.pgparam
     fn param
 
 export pgrest_select = with-pgparam (param) ->
@@ -249,9 +248,27 @@ export pgrest_upsert = with-pgparam (param) ->
 
 pgrest_upsert.$plv8x = '(plv8x.json):plv8x.json'
 
+export function pgrest_param()
+  plv8x.pgparam
+pgrest_param.$plv8x = '():plv8x.json'
+
+export function pgrest_param_get(key)
+  plv8x.pgparam[key]
+pgrest_param_get.$plv8x = '(varchar):plv8x.json'
+
+export function pgrest_param_set(key, value)
+  plv8x.pgparam[key] = value
+  plv8x.pgparam
+pgrest_param_set.$plv8x = '(varchar,varchar):plv8x.json'
+
+export function pgrest_param_setobj(pgparam)
+  plv8x.pgparam = pgparam
+pgrest_param_setobj.$plv8x = '(plv8x.json):plv8x.json'
+
 export function boot(config)
     serial = 0
     deferred = []
+    plv8x.pgparam = {}
     ``pgrest = {}``
     ``console`` = do
       log: -> plv8.elog(INFO, ...arguments)

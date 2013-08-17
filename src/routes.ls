@@ -50,6 +50,7 @@ export function mount-model (plx, schema, name, _route=route)
     | \DELETE => \remove
     | _       => throw 405
     param.$ = @body # TODO: Accept CSV as PUT/POST Content-Type
+    param.pgparam = @pgparam
     # text/csv;header=present
     # text/csv;header=absent
     plx[method].call plx, param, it, (error) ->
@@ -64,6 +65,7 @@ export function mount-model (plx, schema, name, _route=route)
     | \DELETE => \remove
     | _       => throw 405
     param.$ = @body
+    param.pgparam = @pgparam
     plx[method].call plx, param, it, (error) -> it { error }
   return name
 
@@ -115,11 +117,11 @@ export function mount-default (plx, schema, _route=route, cb)
       cols_defs = [ "\"#col\" #typ" for col, typ of cols ]
       if (@get "x-pgrest-create-identity-key") is \yes
         cols_defs = [ "\"_id\" SERIAL UNIQUE" ] ++ cols_defs
-        
+
       plx.query """
         CREATE TABLE "#name" (#{
           cols_defs * ",\n"
-        })        
+        })
       """ do-insert
     else
       do-insert!
