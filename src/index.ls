@@ -136,6 +136,7 @@ export pgrest_select = with-pgparam (param) ->
 
     query += " WHERE #cond" if cond?
     [{count}] = plv8.execute "select count(*) from (#query) cnt"
+    throw 404 if fo and count is 0
     return { count } if c
 
     query += " ORDER BY " + order-by s if s

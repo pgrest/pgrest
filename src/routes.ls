@@ -22,7 +22,7 @@ export function route (path, fn)
       | _       => resp.send 500 { error: "#it" }
     trycatch do
       -> fn.call req, ->
-        if it.error
+        if it?error
           handle-error that
         else
           done it
