@@ -1,6 +1,6 @@
 pgrest = require \..
 
-export function cli(config, middleware, bootstrap, cb)
+export function cli(config, use, middleware, bootstrap, cb)
   if \function isnt typeof bootstrap
     bootstrap = if pkg = bootstrap
       bootstrap = (plx, cb) -> pkg.bootstrap plx, cb
@@ -26,8 +26,12 @@ export function cli(config, middleware, bootstrap, cb)
   throw "express required for starting server" unless express
   app = express!
 
-  app.use express.cookieParser!
   app.use express.json!
+  for p in use
+    app.use if \string is typeof p
+      express[p]!
+    else
+      p
 
   if argv.cors
     require! cors
