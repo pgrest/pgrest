@@ -103,6 +103,8 @@ order-by = (fields) ->
 
 export routes = -> require \./routes
 
+export cli = -> require \./cli .cli
+
 function with-pgparam(fn)
   (param) ->
     pgrest_param_setobj delete param.pgparam
