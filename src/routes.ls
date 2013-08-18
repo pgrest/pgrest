@@ -1,4 +1,6 @@
 require! trycatch
+require! passport
+
 export function route (path, fn)
   (req, resp) ->
     # TODO: Content-Negotiate into CSV
@@ -39,6 +41,56 @@ export function with-prefix (prefix, cb)
 export function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
   TypeMap[typeof! content || \plv8x.json]
+
+export function mount-auth (plx, app, config, cb_after_auth, cb_logout)
+  passport.serializeUser (user, done) -> done null, user
+  passport.deserializeUser (id, done) -> done null, id
+
+  default_cb_logout = (req, res) ->
+    console.log "user logout"
+    req.logout!
+    res.redirect config.auth.logout_redirect
+    
+  default_cb_after_auth = (token, tokenSecret, profile, done) ->
+    user = do
+      provider_name: profile.provider
+      provider_id: profile.id
+      username: profile.username
+      name: profile.name
+      emails: profile.emails
+      photos: profile.photos
+    console.log "user #{user.username} authzed by #{user.provider_name}.#{user.provider_id}"
+    #@FIXME: need to merge multiple authoziation profiles 
+    param = [collection: \users, q:{provider_id:user.provider_id, provider_name:user.provider_name}]
+    [pgrest_select:res] <- plx.query "select pgrest_select($1)", param
+    if res.paging.count == 0
+      [pgrest_insert:res] <- plx.query "select pgrest_insert($1)", [collection: \users, $: [user]]    
+    [pgrest_select:res] <- plx.query "select pgrest_select($1)", param
+    user.auth_id = res.entries[0]['_id']
+    console.log user
+    done null, user
+    
+  for provider_name in config.auth.plugins
+    provider_cfg = config.auth.providers_settings[provider_name]
+    throw "#{provider_name} settings is required" unless provider_cfg
+    console.log "enable auth #{provider_name}"
+    # passport settings
+    provider_cfg['callbackURL'] = "http://#{config.host}:#{config.port}/auth/#{provider_name}/callback"
+    console.log provider_cfg
+    module_name = switch provider_name
+                  case \google then "passport-google-oauth"
+                  default "passport-#{provider_name}"
+    _Strategy = require(module_name).Strategy
+    passport.use new _Strategy provider_cfg, if cb_after_auth? then cb_after_auth else default_cb_after_auth
+    # register auth endpoint
+    app.get "/auth/#{provider_name}", (passport.authenticate "#{provider_name}", provider_cfg.scope)
+    _auth = passport.authenticate "#{provider_name}", do
+      successRedirect: config.auth.success_redirect or '/'
+      failureRedirect: "/auth/#{provider_name}"
+    app.get "/auth/#{provider_name}/callback", _auth
+
+  app.get "/logout", if cb_logout? then cb_logout else default_cb_logout
+  app
 
 export function mount-model (plx, schema, name, _route=route)
   _route "#name" !->

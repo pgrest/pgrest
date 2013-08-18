@@ -45,6 +45,8 @@ get_opts = ->
     conString: get_db_conn!
     meta: cfg.meta or {}
     schema: argv.schema or cfg.schema or 'public'
+    auth: cfg.auth or [enable: false]
+    cookie_name: cfg.cookie_name or null
   console.log opts
   ensured_opts opts
 
@@ -58,16 +60,47 @@ if argv.version
 
 opts = get_opts!
 plx <- pgrest .new opts.conString, opts.meta
-{mount-default,with-prefix} = pgrest.routes!
+{mount-default, mount-auth, with-prefix} = pgrest.routes!
 
 process.exit 0 if argv.boot
 
 app = express!
 app.use express.json!
 app.use connect-csv header: \guess
+  
+if opts.auth.enable
+  require! passport
+  app.use express.cookieParser!
+  app.use express.bodyParser!
+  app.use express.methodOverride!
+  app.use express.session secret: 'test'  
+  app.use passport.initialize!
+  app.use passport.session!
+  mount-auth plx, app, opts
+  
+pgparam = (req, res, next) ->
+  if req.isAuthenticated!
+    console.log "#{req.path} user is authzed. init db sesion"
+    req.pgparam = [{auth:req.user}]
+  else
+    console.log "#{req.path} user is not authzed. reset db session"
+    req.pgparam = {}
+
+  if opts.cookie_name?
+    req.pgparam.session = req.cookies[opts.cookie_name]    
+  next!
 
 cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
-  app.all path, cors!, r
+  args = [pgparam, r]
+  args.unshift cors! if argv.cors
+  args.unshift path
+  app.all ...args
+  # for debug
+  app.get '/isauthz', ensure_authz, (req, res) ->
+    [pgrest_param:result] <- plx.query '''select pgrest_param()'''
+    row? <- plx.query "select getauth()"
+    console.log row
+    res.send result          
 
 app.listen opts.port, opts.host
 console.log "Available collections:\n#{ cols * ' ' }"

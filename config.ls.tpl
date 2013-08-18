@@ -13,6 +13,7 @@ host: "0.0.0.0"
 port: "3000"
 # prefix
 prefix: "/collections"
+#cookie_name: ''
 
 #------------------------
 # Database Settings
@@ -24,3 +25,23 @@ dbconn: "tcp://postgres@localhost"
 dbname: "mydb"
 # database schema
 #dbschema: "public"
+
+#-------------------------------
+# Authnication and Authorization
+#-------------------------------
+auth:
+  enable: false
+  success_redirect: "/"
+  logout_redirect: "/"
+  # Active auth plugins
+  plugins: ['facebook']
+  providers_settings:
+    facebook:
+      clientID: ''
+      clientSecret: ''
+    twitter:
+      consumerKey: null
+      consumerSecret: null
+    google:
+      consumerKey: null
+      consumerSecret: null
