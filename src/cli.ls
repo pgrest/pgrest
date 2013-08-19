@@ -1,13 +1,13 @@
 require! path
 pgrest = require \..
 
-ensured_opts = ->
+ensured-opts = ->
   unless it.conString
     console.log "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
     process.exit!
   it
 
-export function get_opts
+export function get-opts
   {argv} = require \optimist
   if argv.version
     {version} = require require.resolve \../package.json
@@ -38,7 +38,7 @@ export function get_opts
     schema: argv.schema or cfg.schema or 'public'
     boot: argv.boot or false
     cors: argv.cors or false
-  ensured_opts opts
+  ensured-opts opts
 
 export function cli(opts, use, middleware, bootstrap, cb)
   if \function isnt typeof bootstrap

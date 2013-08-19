@@ -5,8 +5,8 @@ pgrest = require \..
 
 # Main
 # -------------------------
-get_opts = pgrest.get_opts!
-opts = get_opts!
+get-opts = pgrest.get-opts!
+opts = get-opts!
 
 middleware = []
 
