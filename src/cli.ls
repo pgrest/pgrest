@@ -5,6 +5,15 @@ ensured-opts = ->
   unless it.conString
     console.log "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
     process.exit!
+  unless it.prefix
+    console.log "ERROR: Please set the prefix"
+    process.exit!
+  unless it.port
+    console.log "ERROR: Please set the port"
+    process.exit!
+  unless it.host
+    console.log "ERROR: Please set the host"
+    process.exit!
   it
 
 export function get-opts
