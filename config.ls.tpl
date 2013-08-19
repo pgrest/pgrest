@@ -13,6 +13,8 @@ host: "0.0.0.0"
 port: "3000"
 # prefix
 prefix: "/collections"
+# cookie name
+#cookiename: ''
 
 #------------------------
 # Database Settings
