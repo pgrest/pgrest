@@ -39,9 +39,9 @@ export function get-opts
     boot: argv.boot or false
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
-  ensured-opts opts
 
 export function cli(opts, use, middleware, bootstrap, cb)
+  opts = ensured-opts opts
   if \function isnt typeof bootstrap
     bootstrap = if pkg = bootstrap
       bootstrap = (plx, cb) -> pkg.bootstrap plx, cb
