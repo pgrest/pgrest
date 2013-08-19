@@ -8,10 +8,16 @@ pgrest = require \..
 get-opts = pgrest.get-opts!
 opts = get-opts!
 
-middleware = []
+pgparam = (req, res, next) ->
+  if opts.cookiename
+    session = req.cookies[opts.cookiename]
+    req.pgparam = {session}
+  next!
+
+middleware = [pgparam]
 
 if opts.app
-  bootstrap = reqire opts.app
+  bootstrap = reqire opts.app 
 else
   bootstrap = null
   

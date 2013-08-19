@@ -38,6 +38,7 @@ export function get-opts
     schema: argv.schema or cfg.schema or 'public'
     boot: argv.boot or false
     cors: argv.cors or false
+    cookiename: argv.cookiename or cfg.cookiename or null
   ensured-opts opts
 
 export function cli(opts, use, middleware, bootstrap, cb)
