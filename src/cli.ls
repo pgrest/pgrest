@@ -70,8 +70,8 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   {mount-default,mount-auth,with-prefix} = pgrest.routes!
 
-  if bootstrap
-    <- bootstrap plx
+
+  <- bootstrap plx
 
   process.exit 0 if opts.boot
 
