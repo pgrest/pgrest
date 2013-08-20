@@ -45,7 +45,7 @@ export function get-opts
     conString: get_db_conn!
     meta: cfg.meta or {}
     auth: cfg.auth or {}
-    schema: argv.schema or cfg.schema or 'public'
+    schema: argv.schema or cfg.dbschema or 'public'
     boot: argv.boot or false
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
