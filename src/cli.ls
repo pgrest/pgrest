@@ -51,7 +51,8 @@ export function get-opts
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
 
-mk-pgparam = (enabled_auth, cookiename)-> 
+mk-pgparam = (enabled_auth, cookiename)->
+  req.pgparam = {}
   pgparam = (req, res, next) ->
     if enabled_auth
       if req.isAuthenticated!
