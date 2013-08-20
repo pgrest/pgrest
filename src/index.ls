@@ -102,6 +102,8 @@ order-by = (fields) ->
     sort * ", "
 
 export routes = -> require \./routes
+export get-opts = -> require \./cli .get-opts
+export cli = -> require \./cli .cli
 
 function with-pgparam(fn)
   (param) ->

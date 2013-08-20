@@ -13,27 +13,32 @@ host: "0.0.0.0"
 port: "3000"
 # prefix
 prefix: "/collections"
-#cookie_name: ''
+# cookie name
+#cookiename: ''
 
-#------------------------
-# Database Settings
-#------------------------
-
-# database connection
+#-------------------------------
+# Database settings
+#-------------------------------
 dbconn: "tcp://postgres@localhost"
-# database name
 dbname: "mydb"
-# database schema
-#dbschema: "public"
+dbschema: "kuansim"
+#meta:
+#  'pgrest.info': {+fo}
+#  'pgrest.member_count': {+fo}
+#  'pgrest.contingent': {}
+#  'pgrest.issue':
+#    as: 'public.issue'
+#  'pgrest.initiative':
+#    as: 'public.initiative'
 
 #-------------------------------
 # Authnication and Authorization
 #-------------------------------
 auth:
-  enable: false
+  enable: true
   success_redirect: "/"
   logout_redirect: "/"
-  # Active auth plugins
+  # Actived auth plugins
   plugins: ['facebook']
   providers_settings:
     facebook:
