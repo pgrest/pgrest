@@ -23,7 +23,7 @@ pgparam = (req, res, next) ->
 middleware = [pgparam]
 
 if opts.app
-  bootstrap = reqire opts.app 
+  bootstrap = require opts.app 
 else
   bootstrap = null
   
