@@ -16,8 +16,8 @@ pgparam = (req, res, next) ->
     console.log "#{req.path} user is not authzed. reset db session"
     req.pgparam = {}
 
-  if opts.cookie_name?
-    req.pgparam.session = req.cookies[opts.cookie_name]    
+  if opts.cookiename?
+    req.pgparam.session = req.cookies[opts.cookiename]    
   next!
 
 middleware = [pgparam]
