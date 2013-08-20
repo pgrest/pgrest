@@ -51,6 +51,21 @@ export function get-opts
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
 
+mk-pgparam = (enabled_auth, cookiename)-> 
+  pgparam = (req, res, next) ->
+    if enabled_auth
+      if req.isAuthenticated!
+        console.log "#{req.path} user is authzed. init db sesion"
+        req.pgparam = [{auth:req.user}]
+      else
+        console.log "#{req.path} user is not authzed. reset db session"
+        req.pgparam = {}
+          
+    if cookiename?
+      req.pgparam.session = req.cookies[cookiename]    
+    next!
+  pgparam
+
 export function cli(__opts, use, middleware, bootstrap, cb)
   if !Object.keys {} .length
     __opts = get-opts!
@@ -99,20 +114,8 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     app.use passport.initialize!
     app.use passport.session!
     mount-auth plx, app, opts
-
-    pgparam = (req, res, next) ->
-      if req.isAuthenticated!
-        console.log "#{req.path} user is authzed. init db sesion"
-        req.pgparam = [{auth:req.user}]
-      else
-        console.log "#{req.path} user is not authzed. reset db session"
-        req.pgparam = {}
-
-      if opts.cookiename?
-        req.pgparam.session = req.cookies[opts.cookiename]    
-      next!
       
-    middleware.push pgparam
+  middleware.push mk-pgparam opts.auth.enable, opts.cookiename
     
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r
