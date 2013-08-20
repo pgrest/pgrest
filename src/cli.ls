@@ -52,8 +52,8 @@ export function get-opts
     app: argv.app or cfg.appname or null
 
 mk-pgparam = (enabled_auth, cookiename)->
-  req.pgparam = {}
   pgparam = (req, res, next) ->
+    req.pgparam = {}
     if enabled_auth
       if req.isAuthenticated!
         console.log "#{req.path} user is authzed. init db sesion"
