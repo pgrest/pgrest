@@ -51,8 +51,10 @@ export function get-opts
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
 
-export function cli(opts, use, middleware, bootstrap, cb)
-  opts = ensured-opts opts
+export function cli(__opts, use, middleware, bootstrap, cb)
+  if !Object.keys {} .length
+    __opts = get-opts!
+  opts = ensured-opts __opts
 
   #@FIXME: not test yet.
   if not bootstrap? and opts.app?
