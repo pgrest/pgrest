@@ -30,13 +30,13 @@
     "plv8x": "0.5.x",
     "express": "3.1.x",
     "cors": "0.0.x",
-    "connect-csv": "*"
+    "connect-csv": "*",
+    "LiveScript": "1.1.1"
   },
   "devDependencies": {
     "mocha": "*",
     "supertest": "0.7.x",
-    "chai": "*",
-    "LiveScript": "1.1.1"
+    "chai": "*"
   },
   "optionalDependencies": {}
 }

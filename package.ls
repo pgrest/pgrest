@@ -35,9 +35,9 @@ dependencies:
   express: \3.1.x
   cors: \0.0.x
   \connect-csv : \*
+  LiveScript: \1.1.1
 devDependencies:
   mocha: \*
   supertest: \0.7.x
   chai: \*
-  LiveScript: \1.1.1
 optionalDependencies: {}
