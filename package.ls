@@ -13,19 +13,19 @@ repository:
   url: 'git://github.com/clkao/pgrest.git'
 scripts:
   test: """
-    env PATH="./node_modules/.bin:$PATH" mocha
+    mocha
   """
   prepublish: """
-    env PATH="./node_modules/.bin:$PATH" lsc -cj package.ls &&
-    env PATH="./node_modules/.bin:$PATH" lsc -bc bin &&
+    lsc -cj package.ls &&
+    lsc -bc bin &&
     chmod 755 bin/cmd.js &&
-    env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src
+    lsc -bc -o lib src
   """
   postinstall: """
-    env PATH="./node_modules/.bin:$PATH" lsc -cj package.ls &&
-    env PATH="./node_modules/.bin:$PATH" lsc -bc bin &&
+    lsc -cj package.ls &&
+    lsc -bc bin &&
     chmod 755 bin/cmd.js &&
-    env PATH="./node_modules/.bin:$PATH" lsc -bc -o lib src
+    lsc -bc -o lib src
   """
 engines: {node: '*'}
 dependencies:
