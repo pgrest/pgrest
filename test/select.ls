@@ -1,13 +1,12 @@
 should = (require \chai).should!
+mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
 
-var pgrest, _plx, plx
+var _plx, plx
 describe 'Select', ->
   beforeEach (done) ->
-    pgrest := require \..
-    pgrest.should.be.ok
-    _plx <- pgrest.new 'tcp://postgres@localhost/mydb', {}
+    _plx <- mk-pgrest-fortest!
     plx := _plx
-    res <- plx.query """
+    <- plx.query """
     DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
         field text not null primary key,
@@ -21,13 +20,10 @@ describe 'Select', ->
     INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());    
     """    
     done!
-  describe 'table/view(s) without any othre conditions', -> ``it``
-    .. 'should contatin the operation name in the result.', (done) ->
+  describe 'is excepted to return a self-descriptive result', -> ``it``
+    .. 'should contain operation name, paging info.', (done) ->
       res <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
       res.0.should.have.keys 'pgrest_select'
-      done!
-    .. 'should contain paging info in the result.' (done) ->
-      res <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
       res.0.pgrest_select.paging.count.should.eql 5
       res.0.pgrest_select.paging.l.should.eql 30
       res.0.pgrest_select.paging.sk.should.eql 0
