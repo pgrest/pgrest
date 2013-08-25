@@ -1,6 +1,7 @@
 should = (require \chai).should!
 expect = (require \chai).expect
 mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
+provide-dbconn = (require \./testlib).provide-dbconn
 
 var _plx, plx
 describe 'Upsert', ->
@@ -34,7 +35,7 @@ describe 'Upsert', ->
   describe 'in contention', -> ``it``    
     .. '@FIXME: add test pupose here.', (done) ->      
       require! plv8x
-      conn = plv8x.connect 'tcp://postgres@localhost/mydb'
+      conn = plv8x.connect provide-dbconn!
       <- conn.query 'select plv8x.boot()'
       <- plv8x.plv8x-eval conn, -> plv8x_require \pgrest .boot!
       plx.query """select pgrest_upsert($1)""", [collection: \pgrest_test, $: { $set: {value: \yes} }, delay: 1, q: {field: \pgrest_haslock} ], (delayed) ->
