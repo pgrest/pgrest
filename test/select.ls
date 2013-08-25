@@ -7,7 +7,6 @@ describe 'Select', ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
     <- plx.query """
-    DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text[] not null,
@@ -20,6 +19,9 @@ describe 'Select', ->
     INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());    
     """    
     done!
+  afterEach (done) ->
+    <- plx.query "DROP TABLE IF EXISTS pgrest_test;"
+    done!    
   describe 'is excepted to return a self-descriptive result', -> ``it``
     .. 'should contain operation name, paging info.', (done) ->
       res <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]

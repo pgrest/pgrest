@@ -9,7 +9,6 @@ describe 'Upsert', ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
     <- plx.query """
-    DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text not null,
@@ -17,6 +16,9 @@ describe 'Upsert', ->
     );
     INSERT INTO pgrest_test (field, value, last_update) values('pgrest_version', '0.0.1', NOW());    
     """    
+    done!
+  afterEach (done) ->
+    <- plx.query "DROP TABLE IF EXISTS pgrest_test;"
     done!
   describe 'a existen entity', -> ``it``    
     .. 'should perform update operation.', (done) ->

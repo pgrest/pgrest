@@ -8,14 +8,16 @@ describe 'Array', ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
     <- plx.query """
-    DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text[] not null,
         last_update timestamp
     );
     """    
-    done!  
+    done!
+  afterEach (done) ->
+    <- plx.query """DROP TABLE IF EXISTS pgrest_test;"""
+    done!
   describe 'insert objects', -> ``it``
     .. 'should return true if operation is success', (done) ->
       [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [

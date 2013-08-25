@@ -32,6 +32,13 @@ describe 'Routing', ->
     INSERT INTO initiative (id, issue_id, title, last_update) values(2, 2, 'test 2', NOW());
     """
     done!
+  afterEach (done) ->
+    <- plx.query """
+      DROP TABLE IF EXISTS issue;
+      DROP TABLE IF EXISTS nonexist_table;
+      DROP TABLE IF EXISTS initiative;
+    """
+    done!
   describe 'with public schema', ->
     beforeEach (done) ->
       {mount-default,with-prefix} = pgrest.routes!
@@ -69,7 +76,7 @@ describe 'Routing', ->
           .expect 'Content-Type' /json/
           .expect 200
           .end 
-        res.body.length.should.eq 3
+        res.body.length.should.eq 2
         done!
     describe.skip 'POST /collections', -> ``it``
       .. 'should return error', (done) ->

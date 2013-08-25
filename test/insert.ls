@@ -6,14 +6,16 @@ describe 'Insert', ->
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
-    <- plx.query """
-    DROP TABLE IF EXISTS pgrest_test;
+    <- plx.query """    
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text not null,
         last_update timestamp
     );
     """    
+    done!
+  afterEach (done) ->
+    <- plx.query "DROP TABLE IF EXISTS pgrest_test;"
     done!
   describe 'is excepted to return a self-descriptive result', -> ``it``    
     .. 'should contatin the operation name in the result.', (done) ->
