@@ -1,6 +1,6 @@
-exports.get_dbcnn = ->
-  throw "environment variable TESTDBNAME is required" unless process.env.TESTDBNAME
-  prefix = if process.env.TESTDBUSERNAME 
-    then "#{ process.env.TESTDBUSERNAME}@"	
-    else ''
-  "tcp://#{prefix}localhost/#{ process.env.TESTDBNAME }"
+should = (require \chai).should!
+
+exports.mk-pgrest-fortest = (cb) ->
+  pgrest = require \..
+  pgrest.should.be.ok
+  pgrest.new 'tcp://postgres@localhost/mydb', {}, cb
