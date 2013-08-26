@@ -44,6 +44,7 @@ export function derive-type (content, type)
     # XXX plv8x.json[] does not work
     return ((TypeMap[typeof! content.0] || \plv8x.json) + '[]') - /^plv8x\./
   TypeMap[typeof! content] || \plv8x.json
+<<<<<<< HEAD
 
 export function mount-auth (plx, app, config, cb_after_auth, cb_logout)
   passport.serializeUser (user, done) -> done null, user
@@ -94,6 +95,8 @@ export function mount-auth (plx, app, config, cb_after_auth, cb_logout)
 
   app.get "/logout", if cb_logout? then cb_logout else default_cb_logout
   app
+=======
+>>>>>>> master
 
 export function mount-model (plx, schema, name, _route=route)
   _route "#name" !->
