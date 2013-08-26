@@ -164,8 +164,8 @@ export pgrest_remove = with-pgparam (param) ->
 pgrest_remove.$plv8x = '(plv8x.json):plv8x.json'
 
 export pgrest_replace = with-pgparam (param) ->
-  remove param
-  return insert param
+  pgrest_remove param
+  return pgrest_insert param
 pgrest_replace.$plv8x = '(plv8x.json):plv8x.json'
 
 function refresh-meta(collection)
