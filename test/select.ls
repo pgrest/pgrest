@@ -7,6 +7,7 @@ describe 'Select', ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
     <- plx.query """
+    DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text[] not null,
