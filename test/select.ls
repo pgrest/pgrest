@@ -1,5 +1,5 @@
 should = (require \chai).should!
-mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
+{mk-pgrest-fortest} = require \./testlib
 
 var _plx, plx
 describe 'Select', ->
@@ -17,12 +17,12 @@ describe 'Select', ->
     INSERT INTO pgrest_test (field, value, last_update) values('b', '{0.0.2}', NOW());
     INSERT INTO pgrest_test (field, value, last_update) values('c', '{0.0.3}', NOW());
     INSERT INTO pgrest_test (field, value, last_update) values('d', '{0.0.4}', NOW());
-    INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());    
-    """    
+    INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());
+    """
     done!
   afterEach (done) ->
     <- plx.query "DROP TABLE IF EXISTS pgrest_test;"
-    done!    
+    done!
   describe 'is excepted to return a self-descriptive result', -> ``it``
     .. 'should contain operation name, paging info.', (done) ->
       res <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
@@ -49,4 +49,4 @@ describe 'Select', ->
       res.paging.l.should.eq 1
       res.paging.sk.should.eq 0
       done!
-  
+

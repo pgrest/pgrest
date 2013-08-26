@@ -1,6 +1,6 @@
 should = (require \chai).should!
 expect = (require \chai).expect
-mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
+{mk-pgrest-fortest} = require \./testlib
 
 require! <[supertest express]>
 
@@ -53,7 +53,7 @@ describe 'Routing', ->
           .get '/'
           .expect 'Content-Type' /json/
           .expect 200
-          .end 
+          .end
         res.body.length.should.eq 2
         res.body.should.deep.eq [ 'collections', 'runCommand' ]
         done!
@@ -68,14 +68,14 @@ describe 'Routing', ->
     describe.skip 'DELETE /', -> ``it``
       .. 'should return error', (done) ->
         #FIXME: TBD
-        done!                      
+        done!
     describe 'GET /collections', -> ``it``
       .. 'should list all table or view names', (done) ->
         (err, res) <- supertest app
           .get '/collections'
           .expect 'Content-Type' /json/
           .expect 200
-          .end 
+          .end
         res.body.length.should.eq 2
         done!
     describe.skip 'POST /collections', -> ``it``
@@ -109,7 +109,7 @@ describe 'Routing', ->
           .send [{username: \u1}, {username: \u2}]
           .set 'Accept', 'application/json'
           .set 'x-pgrest-create-identity-key', 'yes'
-          .end 
+          .end
         res.text.should.equal '[1,1]'
         cols <- plx.query "SELECT * FROM nonexist_table"
         cols.map ->

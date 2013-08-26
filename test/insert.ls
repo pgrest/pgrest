@@ -1,28 +1,28 @@
 should = (require \chai).should!
-mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
+{mk-pgrest-fortest} = require \./testlib
 
 var _plx, plx
 describe 'Insert', ->
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
-    <- plx.query """    
+    <- plx.query """
     DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text not null,
         last_update timestamp
     );
-    """    
+    """
     done!
   afterEach (done) ->
     <- plx.query "DROP TABLE IF EXISTS pgrest_test;"
     done!
-  describe 'is excepted to return a self-descriptive result', -> ``it``    
+  describe 'is excepted to return a self-descriptive result', -> ``it``
     .. 'should contatin the operation name in the result.', (done) ->
       res <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [field:1, value:2]]
       res.0.should.have.keys 'pgrest_insert'
-      done!      
+      done!
   describe 'objects', -> ``it``
     .. 'should return true if operation is success', (done) ->
       [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [
