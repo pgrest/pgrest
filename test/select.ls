@@ -1,31 +1,51 @@
 should = (require \chai).should!
-test_conString = (require \./testlib).get_dbcnn!
-expect = (require \chai).expect
-var pgrest, plx
-describe 'pgrest', -> ``it``
-  .. 'loaded successfully.', (done) ->
-    # Load home page
-    conString = test_conString
-    pgrest := require \..
-    pgrest.should.be.ok
-    _plx <- pgrest.new conString, {foo: \bar}
+mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
+
+var _plx, plx
+describe 'Select', ->
+  beforeEach (done) ->
+    _plx <- mk-pgrest-fortest!
     plx := _plx
-    done!
-#  .. 'error', (done) ->
-#    (-> plx.query "X" -> console.error \grr).should.throw 'syntax error at or near "X"'
-#    done!
-  .. 'test data', (done) ->
-    res <- plx.query """
-    DROP TABLE IF EXISTS pgrest_test;
+    <- plx.query """
     CREATE TABLE pgrest_test (
         field text not null primary key,
-        value text not null,
+        value text[] not null,
         last_update timestamp
     );
-    INSERT INTO pgrest_test (field, value, last_update) values('pgrest_version', '0.0.1', NOW());
-    """
+    INSERT INTO pgrest_test (field, value, last_update) values('a', '{0.0.1}', NOW());
+    INSERT INTO pgrest_test (field, value, last_update) values('b', '{0.0.2}', NOW());
+    INSERT INTO pgrest_test (field, value, last_update) values('c', '{0.0.3}', NOW());
+    INSERT INTO pgrest_test (field, value, last_update) values('d', '{0.0.4}', NOW());
+    INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());    
+    """    
     done!
-  .. 'select', (done) ->
-    [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
-    expect res.paging.count .to.equal 1
-    done!
+  afterEach (done) ->
+    <- plx.query "DROP TABLE IF EXISTS pgrest_test;"
+    done!    
+  describe 'is excepted to return a self-descriptive result', -> ``it``
+    .. 'should contain operation name, paging info.', (done) ->
+      res <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
+      res.0.should.have.keys 'pgrest_select'
+      res.0.pgrest_select.paging.count.should.eql 5
+      res.0.pgrest_select.paging.l.should.eql 30
+      res.0.pgrest_select.paging.sk.should.eql 0
+      done!
+  describe 'table/view(s) with other conditoin', -> ``it``
+    .. 'should return only matched subset when coulum name and value is given in the condition.', (done) ->
+      q = [collection: \pgrest_test, q: {field:'a'}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 1
+      res.entries.0.field.should.eq 'a'
+      res.entries.0.value.0.should.eq '0.0.1'
+
+      q = [collection: \pgrest_test, q: {value:'{0.0.4}'}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 2
+      done!
+    .. 'should return limited subset when paging is given in the condition.', (done) ->
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, l:'1']
+      res.paging.count.should.eq 5
+      res.paging.l.should.eq 1
+      res.paging.sk.should.eq 0
+      done!
+  

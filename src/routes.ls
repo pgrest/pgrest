@@ -40,7 +40,10 @@ export function with-prefix (prefix, cb)
 
 export function derive-type (content, type)
   TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
-  TypeMap[typeof! content || \plv8x.json]
+  if \Array is typeof! content
+    # XXX plv8x.json[] does not work
+    return ((TypeMap[typeof! content.0] || \plv8x.json) + '[]') - /^plv8x\./
+  TypeMap[typeof! content] || \plv8x.json
 
 export function mount-auth (plx, app, config, cb_after_auth, cb_logout)
   passport.serializeUser (user, done) -> done null, user

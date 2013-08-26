@@ -1,4 +1,4 @@
 --require LiveScript
 --colors
---reporter tap
+--reporter spec
 --compilers ls:LiveScript

@@ -68,7 +68,7 @@ mk-pgparam = (enabled_auth, cookiename)->
   pgparam
 
 export function cli(__opts, use, middleware, bootstrap, cb)
-  if !Object.keys {} .length
+  if !Object.keys __opts .length
     __opts = get-opts!
   opts = ensured-opts __opts
 
