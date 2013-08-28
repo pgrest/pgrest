@@ -1,7 +1,7 @@
 should = (require \chai).should!
 expect = (require \chai).expect
-mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
-provide-dbconn = (require \./testlib).provide-dbconn
+{mk-pgrest-fortest,provide-dbconn} = require \./testlib
+
 require! <[supertest express]>
 var pgrest, app
 describe 'CLI', ->
@@ -23,5 +23,5 @@ describe 'CLI', ->
         .end (err, res) ->
           res.body.should.deep.eq []
           done!
-  
-      
+
+

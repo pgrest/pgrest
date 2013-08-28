@@ -1,6 +1,6 @@
 should = (require \chai).should!
 expect = (require \chai).expect
-mk-pgrest-fortest = (require \./testlib).mk-pgrest-fortest
+{mk-pgrest-fortest} = require \./testlib
 
 var plx, _plx
 describe 'Array', ->
@@ -14,7 +14,7 @@ describe 'Array', ->
         value text[] not null,
         last_update timestamp
     );
-    """    
+    """
     done!
   afterEach (done) ->
     <- plx.query """DROP TABLE IF EXISTS pgrest_test;"""
@@ -31,7 +31,7 @@ describe 'Array', ->
       content = {[field, value] for {field,value} in res.entries}
       expect content.z3 .to.deep.equal <[z2 z3]>
       done!
-  describe 'insert array', -> ``it``    
+  describe 'insert array', -> ``it``
     .. 'should return true if operation is success', (done) ->
       [pgrest_insert:res] <- plx.query """select pgrest_insert($1)""", [collection: \pgrest_test, $: [
         <[field value]>
