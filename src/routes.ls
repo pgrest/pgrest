@@ -55,6 +55,19 @@ export function mount-auth (plx, app, config, cb_after_auth, cb_logout)
     res.redirect config.auth.logout_redirect
     
   default_cb_after_auth = (token, tokenSecret, profile, done) ->
+    <- plx.query """
+      CREATE TABLE IF NOT EXISTS users (
+        _id SERIAL UNIQUE,
+        provider_name TEXT NOT NULL,
+        provider_id TEXT NOT NULL,
+        username TEXT,
+        name JSON,
+        display_name TEXT,
+        emails JSON,
+        photos JSON,
+        tokens JSON
+    );    
+    """
     user = do
       provider_name: profile.provider
       provider_id: profile.id
