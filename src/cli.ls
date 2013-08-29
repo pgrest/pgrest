@@ -106,6 +106,8 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     require! cors
     middleware.unshift cors!
 
+  middleware.push mk-pgparam opts.auth.enable, opts.cookiename
+  
   if opts.auth.enable
     require! passport
     app.use express.cookieParser!
@@ -115,9 +117,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     app.use passport.initialize!
     app.use passport.session!
     mount-auth plx, app, opts
-      
-  middleware.push mk-pgparam opts.auth.enable, opts.cookiename
-    
+          
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r
     app.all ...args
