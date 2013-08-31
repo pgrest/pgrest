@@ -45,7 +45,7 @@ export function derive-type (content, type)
     return ((TypeMap[typeof! content.0] || \plv8x.json) + '[]') - /^plv8x\./
   TypeMap[typeof! content] || \plv8x.json
 
-export function mount-auth (plx, app, config, cb_after_auth, cb_logout)
+export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logout)
   passport.serializeUser (user, done) -> done null, user
   passport.deserializeUser (id, done) -> done null, id
 

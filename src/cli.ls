@@ -116,7 +116,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     app.use express.session secret: 'test'
     app.use passport.initialize!
     app.use passport.session!
-    mount-auth plx, app, opts
+    mount-auth plx, app, middleware, opts
           
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r
