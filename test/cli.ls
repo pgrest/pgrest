@@ -3,7 +3,7 @@ expect = (require \chai).expect
 {mk-pgrest-fortest,provide-dbconn} = require \./testlib
 
 require! <[supertest express]>
-var pgrest, app
+var pgrest, app, srv
 describe 'CLI', ->
   this.timeout 10000ms
   beforeEach (done) ->
@@ -12,8 +12,12 @@ describe 'CLI', ->
     getopts = pgrest.get-opts!
     testopts = getopts!
     testopts.conString = provide-dbconn!
-    _app <- pgrest.cli! testopts, {}, [], null
+    _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
     app := _app
+    srv := _srv
+    done!
+  afterEach (done) ->
+    srv.close!
     done!
   describe '#cli()', -> ``it``
     .. 'should pass all routing tests', (done) ->
