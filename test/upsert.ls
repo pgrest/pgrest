@@ -4,6 +4,7 @@ expect = (require \chai).expect
 
 var _plx, plx
 describe 'Upsert', ->
+  this.timeout 10000ms
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx

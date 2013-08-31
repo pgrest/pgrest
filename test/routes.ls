@@ -9,6 +9,7 @@ pgrest = require \..
 boot = {}
 
 describe 'Routing', ->
+  this.timeout 10000ms
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx

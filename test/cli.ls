@@ -5,6 +5,7 @@ expect = (require \chai).expect
 require! <[supertest express]>
 var pgrest, app
 describe 'CLI', ->
+  this.timeout 10000ms
   beforeEach (done) ->
     pgrest := require \..
     pgrest.should.be.ok
