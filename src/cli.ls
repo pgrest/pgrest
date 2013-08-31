@@ -1,19 +1,20 @@
 require! path
 require! http
+require! winston
 pgrest = require \..
 
 ensured-opts = ->
   unless it.conString
-    console.log "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
+    winston.error "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
     process.exit!
   unless it.prefix
-    console.log "ERROR: Please set the prefix"
+    winston.error "ERROR: Please set the prefix"
     process.exit!
   unless it.port
-    console.log "ERROR: Please set the port"
+    winston.error "ERROR: Please set the port"
     process.exit!
   unless it.host
-    console.log "ERROR: Please set the host"
+    winston.error "ERROR: Please set the host"
     process.exit!
   it
 
@@ -21,7 +22,7 @@ export function get-opts
   {argv} = require \optimist
   if argv.version
     {version} = require require.resolve \../package.json
-    console.log "PgRest v#{version}"
+    winston.info "PgRest v#{version}"
     process.exit 0
 
   if argv.config
@@ -57,10 +58,10 @@ mk-pgparam = (enabled_auth, cookiename)->
     req.pgparam = {}
     if enabled_auth
       if req.isAuthenticated!
-        console.log "#{req.path} user is authzed. init db sesion"
+        winston.info "#{req.path} user is authzed. init db sesion"
         req.pgparam.auth = req.user
       else
-        console.log "#{req.path} user is not authzed. reset db session"
+        winston.info "#{req.path} user is not authzed. reset db session"
         req.pgparam = {}
           
     if cookiename?
@@ -69,6 +70,7 @@ mk-pgparam = (enabled_auth, cookiename)->
   pgparam
 
 export function cli(__opts, use, middleware, bootstrap, cb)
+
   if !Object.keys __opts .length
     __opts = get-opts!
   opts = ensured-opts __opts
@@ -125,7 +127,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   server = http.createServer app
   <- server.listen opts.port, opts.host, 511
-  console.log "Available collections:\n#{ cols.sort! * ' ' }"
-  console.log "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
+  winston.info "Available collections:\n#{ cols.sort! * ' ' }"
+  winston.info "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
   if cb
     cb app, plx, server
