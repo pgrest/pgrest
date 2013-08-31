@@ -3,6 +3,7 @@ should = (require \chai).should!
 
 var _plx, plx
 describe 'Select', ->
+  this.timeout 10000ms
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
