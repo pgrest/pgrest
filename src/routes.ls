@@ -53,7 +53,7 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
     console.log "user logout"
     req.logout!
     res.redirect config.auth.logout_redirect
-    
+
   default_cb_after_auth = (token, tokenSecret, profile, done) ->
     <- plx.query """
       CREATE TABLE IF NOT EXISTS users (
@@ -66,7 +66,7 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
         emails JSON,
         photos JSON,
         tokens JSON
-    );    
+    );
     """
     user = do
       provider_name: profile.provider
@@ -76,16 +76,16 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
       emails: profile.emails
       photos: profile.photos
     console.log "user #{user.username} authzed by #{user.provider_name}.#{user.provider_id}"
-    #@FIXME: need to merge multiple authoziation profiles 
+    #@FIXME: need to merge multiple authoziation profiles
     param = [collection: \users, q:{provider_id:user.provider_id, provider_name:user.provider_name}]
     [pgrest_select:res] <- plx.query "select pgrest_select($1)", param
     if res.paging.count == 0
-      [pgrest_insert:res] <- plx.query "select pgrest_insert($1)", [collection: \users, $: [user]]    
+      [pgrest_insert:res] <- plx.query "select pgrest_insert($1)", [collection: \users, $: [user]]
     [pgrest_select:res] <- plx.query "select pgrest_select($1)", param
     user.auth_id = res.entries[0]['_id']
     console.log user
     done null, user
-    
+
   for provider_name in config.auth.plugins
     provider_cfg = config.auth.providers_settings[provider_name]
     throw "#{provider_name} settings is required" unless provider_cfg
