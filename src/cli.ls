@@ -57,7 +57,7 @@ mk-pgparam = (enabled_auth, cookiename)->
     if enabled_auth
       if req.isAuthenticated!
         console.log "#{req.path} user is authzed. init db sesion"
-        req.pgparam = [{auth:req.user}]
+        req.pgparam.auth = req.user
       else
         console.log "#{req.path} user is not authzed. reset db session"
         req.pgparam = {}
