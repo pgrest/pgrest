@@ -105,7 +105,9 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
       failureRedirect: "/auth/#{provider_name}"
     app.get "/auth/#{provider_name}/callback", _auth
 
-  app.get "/logout", if cb_logout? then cb_logout else default_cb_logout
+  app.get "/loggedin", middleware, (req, res) ->
+    if req.pgparam.auth? then res.send true else res.send false
+  app.get "/logout", middleware, if cb_logout? then cb_logout else default_cb_logout
   app
 
 export function mount-model (plx, schema, name, _route=route)
