@@ -28,7 +28,7 @@ export function get-opts
   if argv.config
     cfg = require path.resolve "#{argv.config}"
   else
-    cfg = {}      
+    cfg = {}
   get_db_conn = ->
     if cfg.dbconn and cfg.dbname
       conString = "#{cfg.dbconn}/#{cfg.dbname}"
@@ -63,9 +63,9 @@ mk-pgparam = (enabled_auth, cookiename)->
       else
         winston.info "#{req.path} user is not authzed. reset db session"
         req.pgparam = {}
-          
+
     if cookiename?
-      req.pgparam.session = req.cookies[cookiename]    
+      req.pgparam.session = req.cookies[cookiename]
     next!
   pgparam
 
@@ -77,8 +77,8 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   #@FIXME: not test yet.
   if not bootstrap? and opts.app?
-    bootstrap = require opts.app 
-  
+    bootstrap = require opts.app
+
   if \function isnt typeof bootstrap
     bootstrap = if pkg = bootstrap
       bootstrap = (plx, cb) -> pkg.bootstrap plx, cb
@@ -110,7 +110,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     middleware.unshift cors!
 
   middleware.push mk-pgparam opts.auth.enable, opts.cookiename
-  
+
   if opts.auth.enable
     require! passport
     app.use express.cookieParser!
@@ -120,7 +120,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     app.use passport.initialize!
     app.use passport.session!
     mount-auth plx, app, middleware, opts
-          
+
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r
     app.all ...args
