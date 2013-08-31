@@ -1,4 +1,5 @@
 require! path
+require! http
 pgrest = require \..
 
 ensured-opts = ->
@@ -122,8 +123,9 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     args = [path] ++ middleware ++ r
     app.all ...args
 
-  if cb
-    cb app, plx
-  app.listen opts.port, opts.host
+  server = http.createServer app
+  <- server.listen opts.port, opts.host, 511
   console.log "Available collections:\n#{ cols.sort! * ' ' }"
   console.log "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
+  if cb
+    cb app, plx, server
