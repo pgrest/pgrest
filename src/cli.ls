@@ -52,6 +52,7 @@ export function get-opts
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
+    argv: argv
 
 mk-pgparam = (enabled_auth, cookiename)->
   pgparam = (req, res, next) ->
