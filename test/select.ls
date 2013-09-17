@@ -44,6 +44,16 @@ describe 'Select', ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.paging.count.should.eq 2
       done!
+    .. 'should only return the result count for this query if c is given.', (done) ->
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, c:true]
+      res.count.should.eq 5
+      done!
+    .. 'should return a single document from the result set if fo is given', (done) ->
+      q = [collection: \pgrest_test, fo: true, q: {field:'a'}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.field.should.eq 'a'
+      res.value.0.should.eq '0.0.1'
+      done!
     .. 'should return limited subset when paging is given in the condition.', (done) ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, l:'1']
       res.paging.count.should.eq 5
