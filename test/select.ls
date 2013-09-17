@@ -19,6 +19,8 @@ describe 'Select', ->
     INSERT INTO pgrest_test (field, value, last_update) values('c', '{0.0.3}', NOW());
     INSERT INTO pgrest_test (field, value, last_update) values('d', '{0.0.4}', NOW());
     INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());
+    #@XXXX need to be removed if we have proper fix
+    select pgrest_boot('{}');
     """
     done!
   afterEach (done) ->
@@ -53,6 +55,12 @@ describe 'Select', ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.field.should.eq 'a'
       res.value.0.should.eq '0.0.1'
+      done!
+    .. 'should exclude column inf the result if a column name is specified to exclude ', (done) ->
+      q = [collection: \pgrest_test, f: {field: -1}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.entries.map ->
+        it.field? .should.not.ok
       done!
     .. 'should return limited subset when paging is given in the condition.', (done) ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, l:'1']
