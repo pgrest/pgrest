@@ -122,6 +122,10 @@ export pgrest_select = with-pgparam (param) ->
     id-column = pgrest.PrimaryFieldOf[meta?as ? collection]
     q[id-column] = delete q._id if q?_id and id-column
     cond = compile collection, q if q
+
+    if (collection / '.').length == 1
+      collection = "public.#{collection}"
+    
     if pgrest.ColumnsOf[collection]
       columns = [].concat that
       if f
