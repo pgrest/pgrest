@@ -33,7 +33,7 @@ describe 'Select', ->
       res.0.pgrest_select.paging.sk.should.eql 0
       done!
   describe 'table/view(s) with other conditoin', -> ``it``
-    .. 'should return only matched subset when coulum name and value is given in the condition.', (done) ->
+    .. 'should restrict results by the specified JSON query.', (done) ->
       q = [collection: \pgrest_test, q: {field:'a'}]
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.paging.count.should.eq 1
