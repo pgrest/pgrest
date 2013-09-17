@@ -133,7 +133,7 @@ export pgrest_select = with-pgparam (param) ->
         if inclusive
           columns.=filter (f.)
         else
-          columns.=filter -> !f[it]? or f[it]
+          columns.=filter -> !f[it]? or f[it] == 1
     else
       columns = ['*']
 
