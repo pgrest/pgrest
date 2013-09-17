@@ -7,6 +7,7 @@ describe 'Select', ->
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
+    #@XXXX need to remove pgrest_boot
     <- plx.query """
     DROP TABLE IF EXISTS pgrest_test;
     CREATE TABLE pgrest_test (
@@ -19,7 +20,6 @@ describe 'Select', ->
     INSERT INTO pgrest_test (field, value, last_update) values('c', '{0.0.3}', NOW());
     INSERT INTO pgrest_test (field, value, last_update) values('d', '{0.0.4}', NOW());
     INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());
-    #@XXXX need to be removed if we have proper fix
     select pgrest_boot('{}');
     """
     done!
