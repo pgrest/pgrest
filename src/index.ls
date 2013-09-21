@@ -5,8 +5,13 @@ exports.new = (conString, config, cb) ->
     conString = "localhost/#conString" unless conString is // / //
     conString = "tcp://#conString"     unless conString is // :/ //
   plx <- plv8x.new conString
-  next <- plx.import-bundle-funcs \pgrest require.resolve(\../package.json)
-  <- next!
+  do-import = (cb) ->
+    next <- plx.import-bundle-funcs \pgrest require.resolve(\../package.json)
+    <- next!
+    cb!
+  if config.client
+    do-import = (cb) -> cb!
+  <- do-import
   plx.boot = (cb) -> plx.ap (-> plv8x.require \pgrest .boot), [config], cb
   plx.conn.on \error ->
     console.log \pgerror it
