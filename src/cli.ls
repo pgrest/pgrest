@@ -110,7 +110,8 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     require! cors
     middleware.unshift cors!
 
-  middleware.push mk-pgparam opts.auth.enable, opts.cookiename
+  if opts.cookiename
+    middleware.push mk-pgparam opts.auth.enable, opts.cookiename
 
   if opts.auth.enable
     require! passport
