@@ -31,10 +31,6 @@
     "express": "3.1.x",
     "cors": "0.0.x",
     "connect-csv": "*",
-    "passport": "*",
-    "passport-facebook": "*",
-    "passport-twitter": "*",
-    "passport-google-oauth": "*",
     "LiveScript": "1.1.1",
     "winston": "~0.7.2"
   },
@@ -43,5 +39,10 @@
     "supertest": "0.7.x",
     "chai": "*"
   },
-  "optionalDependencies": {}
+  "optionalDependencies": {
+    "passport": "*",
+    "passport-facebook": "*",
+    "passport-twitter": "*",
+    "passport-google-oauth": "*"
+  }
 }

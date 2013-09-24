@@ -35,14 +35,14 @@ dependencies:
   express: \3.1.x
   cors: \0.0.x
   \connect-csv : \*
-  passport: \*
-  'passport-facebook': \*
-  'passport-twitter': \*
-  'passport-google-oauth': \*
   LiveScript: \1.1.1
   winston: \~0.7.2
 devDependencies:
   mocha: \*
   supertest: \0.7.x
   chai: \*
-optionalDependencies: {}
+optionalDependencies:
+  passport: \0.1.x
+  'passport-facebook': \1.0.x
+  'passport-twitter': \1.0.x
+  'passport-google-oauth': \0.1.x
