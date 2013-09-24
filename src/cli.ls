@@ -33,7 +33,7 @@ export function get-opts
     if cfg.dbconn and cfg.dbname
       conString = "#{cfg.dbconn}/#{cfg.dbname}"
     else if argv.pgsock
-      conString = "postgres:localhost/#{pgsock}"
+      conString = "postgres:localhost/#{argv.pgsock}"
     else
       conString = argv.db \
         or process.env['PLV8XCONN'] \
