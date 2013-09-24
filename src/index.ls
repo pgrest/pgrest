@@ -267,12 +267,12 @@ pgrest_param.$plv8x = '():plv8x.json'
 
 export function pgrest_param_get(key)
   plv8x.pgparam[key]
-pgrest_param_get.$plv8x = '(varchar):plv8x.json'
+pgrest_param_get.$plv8x = '(text):text'
 
 export function pgrest_param_set(key, value)
   plv8x.pgparam[key] = value
   plv8x.pgparam
-pgrest_param_set.$plv8x = '(varchar,varchar):plv8x.json'
+pgrest_param_set.$plv8x = '(text,text):plv8x.json'
 
 export function pgrest_param_setobj(pgparam)
   plv8x.pgparam = pgparam
