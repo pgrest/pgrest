@@ -112,7 +112,8 @@ export cli = -> require \./cli .cli
 
 function with-pgparam(fn)
   (param) ->
-    pgrest_param_setobj delete param.pgparam
+    if param.pgparam
+      pgrest_param_setobj delete param.pgparam
     fn param
 
 export pgrest_select = with-pgparam (param) ->
