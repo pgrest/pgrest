@@ -56,13 +56,13 @@ describe 'Select', ->
       res.field.should.eq 'a'
       res.value.0.should.eq '0.0.1'
       done!
-    .. 'should exclude column inf the result if a column name is specified to exclude ', (done) ->
+    .. 'should return result which does not has element that the column name is specified to exclude.. ', (done) ->
       q = [collection: \pgrest_test, f: {field: -1}]
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.entries.map ->
         it.field? .should.not.ok
       done!
-    .. 'should include column inf the result if a column name is specified to include ', (done) ->
+    .. 'should return result which only has elements that the column name is specified to include.', (done) ->
       q = [collection: \pgrest_test, f: {field: 1, value: 1}]
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.entries.map ->
