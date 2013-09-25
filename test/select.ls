@@ -63,11 +63,13 @@ describe 'Select', ->
         it.field? .should.not.ok
       done!
     .. 'should include column inf the result if a column name is specified to include ', (done) ->
-      q = [collection: \pgrest_test, f: {field: 1}]
+      q = [collection: \pgrest_test, f: {field: 1, value: 1}]
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.entries.map ->
         it.field? .should.ok
-        [k for k,v of it] .length .should.eq 1
+        it.value? .should.ok
+        it.last_update? .should.not.ok
+        [k for k,v of it] .length .should.eq 2
       done!      
     .. 'should return limited subset when paging is given in the condition.', (done) ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, l:'1']
