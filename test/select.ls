@@ -77,3 +77,12 @@ describe 'Select', ->
       res.paging.l.should.eq 1
       res.paging.sk.should.eq 0
       done!
+    .. 'should skip N elements if sk is given ', (done) ->
+      [0 to 5].map ->
+        [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, sk:it]
+        res.entries.length.should.eq (5-it)        
+      done!
+    .. .skip 'should raise error if sk or l is out of range.', (done) ->
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, sk: 5, l:6]
+      #@FIXME: non of either error message notice an user his sk or l argument is invalid.
+      done!
