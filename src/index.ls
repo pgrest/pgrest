@@ -9,6 +9,7 @@ exports.new = (conString, config, cb) ->
     next <- plx.import-bundle-funcs \pgrest require.resolve(\../package.json)
     <- next!
     cb!
+  plx.config = config
   if config.client
     do-import = (cb) -> cb!
   <- do-import
