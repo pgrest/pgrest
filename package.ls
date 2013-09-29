@@ -37,6 +37,7 @@ dependencies:
   \connect-csv : \*
   LiveScript: \1.1.1
   winston: \~0.7.2
+  async: \0.2.x
 devDependencies:
   mocha: \*
   supertest: \0.7.x

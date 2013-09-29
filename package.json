@@ -32,7 +32,8 @@
     "cors": "0.0.x",
     "connect-csv": "*",
     "LiveScript": "1.1.1",
-    "winston": "~0.7.2"
+    "winston": "~0.7.2",
+    "async": "0.2.x"
   },
   "devDependencies": {
     "mocha": "*",
@@ -40,9 +41,9 @@
     "chai": "*"
   },
   "optionalDependencies": {
-    "passport": "*",
-    "passport-facebook": "*",
-    "passport-twitter": "*",
-    "passport-google-oauth": "*"
+    "passport": "0.1.x",
+    "passport-facebook": "1.0.x",
+    "passport-twitter": "1.0.x",
+    "passport-google-oauth": "0.1.x"
   }
 }

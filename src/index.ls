@@ -304,6 +304,40 @@ export function boot(config)
 
     pgrest <<< { PrimaryFieldOf, ColumnsOf, config }
     return true
+
+require! async
+function build_rules(plx, cb)
+  allrules = for relation, {rules} of plx.config.meta when rules
+    for rule in rules
+      {name, event, type, command} = rule
+      (done) ->
+        <- plx.query """
+          CREATE OR REPLACE RULE #{name} AS ON #{event} TO #{relation}
+            DO #{type} (#{command});
+        """, (err) -> console.log err
+        done!
+  <- async.waterfall allrules.reduce (++)
+  cb!
+
+function build_views(plx, cb)
+  views = for name, {as,filters} of plx.config.meta when as
+    source = as
+    if filters
+      source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
+        #source
+      WHERE #{ ["(select true from #filter)" for filter of filters].join " AND "}
+      """
+    (done) ->
+      <- plx.query """CREATE OR REPLACE view #name AS #source;"""
+      done!
+  err <- async.waterfall views
+  cb!
+
+export function bootstrap(plx, name, pkg, cb)
+  next <- plx.import-bundle-funcs name, pkg
+  <- build_views plx
+  next -> build_rules plx, -> cb!
+
 export pgrest_boot = boot
 pgrest_boot.$plv8x = '(plv8x.json):boolean'
 pgrest_boot.$bootstrap = true
