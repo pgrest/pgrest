@@ -308,8 +308,7 @@ export function boot(config)
 require! async
 function build_rules(plx, cb)
   allrules = for relation, {rules} of plx.config.meta when rules
-    for rule in rules
-      {name, event, type, command} = rule
+    for rule in rules => let {name, event, type, command} = rule
       (done) ->
         <- plx.query """
           CREATE OR REPLACE RULE #{name} AS ON #{event} TO #{relation}
@@ -320,7 +319,7 @@ function build_rules(plx, cb)
   cb!
 
 function build_views(plx, cb)
-  views = for name, {as,filters} of plx.config.meta when as
+  views = for name, {as,filters} of plx.config.meta when as => let name
     source = as
     if filters
       source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
