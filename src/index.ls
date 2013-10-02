@@ -324,7 +324,7 @@ function build_views(plx, cb)
     if filters
       source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
         #source
-      WHERE #{ ["(select true from #filter)" for filter of filters].join " AND "}
+      WHERE #{ ["(select true from #filter limit 1)" for filter of filters].join " AND "}
       """
     (done) ->
       <- plx.query """CREATE OR REPLACE view #name AS #source;"""
