@@ -93,7 +93,7 @@ export function build_view_source({as,filters,$query}:meta)
           ['*']
       else
         if v.field
-          [qq v.field + ' ' + qq name] # as
+          [[v.field, name].map qq .join ' '] # as
         else if v.$literal
           [that + ' ' + qq name]
     source = "SELECT #{columns.reduce (++) .join ", "} FROM #source"
@@ -102,6 +102,7 @@ export function build_view_source({as,filters,$query}:meta)
   if filters
     source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
       #source
-    WHERE #{ ["(select true from #filter limit 1)" for filter of filters].join " AND "}
+    #{ if $query => 'AND' else 'WHERE' }
+    #{ ["(select true from #filter limit 1)" for filter of filters].join " AND "}
     """
   source
