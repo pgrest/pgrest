@@ -243,7 +243,7 @@ function build_views(plx, cb)
   views = for name, {as}:meta of plx.config.meta when as => let name
     source = build_view_source meta
     (done) ->
-      <- plx.query """CREATE OR REPLACE view #name AS #source;"""
+      <- plx.query """CREATE OR REPLACE view #name AS #source;""" -> console.log \err it
       done!
   err <- async.waterfall views
   cb!
