@@ -103,6 +103,6 @@ export function build_view_source({as,filters,$query}:meta)
     source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
       #source
     #{ if $query => 'AND' else 'WHERE' }
-    #{ ["(select true from #filter limit 1)" for filter of filters].join " AND "}
+    #{ ["(select count(true) >= 0 from #filter limit 1)" for filter of filters].join " AND "}
     """
   source
