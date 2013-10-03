@@ -66,7 +66,7 @@ export pgrest_select = with-pgparam (param) ->
       columns = ['*']
 
     columns.push id-column if id-column
-    query = "SELECT #{columns.map qq .join \,} FROM #{ qq collection }"
+    query = "SELECT #{columns.map qq .join ", "} FROM #{ qq collection }"
 
     query += " WHERE #cond" if cond?
     [{count}] = plv8.execute "select count(*) from (#query) cnt"
