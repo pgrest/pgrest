@@ -26,7 +26,7 @@ exports.new = (conString, config, cb) ->
   return cb plx if cb
   return plx.conn.end!
 
-{q,qq,compile} = require \./sql
+{q,qq,compile,build_view_source} = require \./sql
 
 export routes = -> require \./routes
 export get-opts = -> require \./cli .get-opts
@@ -240,13 +240,8 @@ function build_rules(plx, cb)
   cb!
 
 function build_views(plx, cb)
-  views = for name, {as,filters} of plx.config.meta when as => let name
-    source = as
-    if filters
-      source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
-        #source
-      WHERE #{ ["(select true from #filter limit 1)" for filter of filters].join " AND "}
-      """
+  views = for name, {as}:meta of plx.config.meta when as => let name
+    source = build_view_source meta
     (done) ->
       <- plx.query """CREATE OR REPLACE view #name AS #source;"""
       done!

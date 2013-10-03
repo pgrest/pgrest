@@ -81,3 +81,12 @@ export function order-by(fields)
         | -1 => \DESC
         | _  => throw "unknown order type: #q #k"
     sort * ", "
+
+export function build_view_source({as,filters}:meta)
+  source = as
+  if filters
+    source = """WITH #{ ["#filter AS (#content)" for filter, content of filters].join ",\n" }
+      #source
+    WHERE #{ ["(select true from #filter limit 1)" for filter of filters].join " AND "}
+    """
+  source
