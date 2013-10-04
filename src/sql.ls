@@ -82,21 +82,24 @@ export function order-by(fields)
         | _  => throw "unknown order type: #q #k"
     sort * ", "
 
+function select_columns(columns)
+  (.reduce (++)) <| for name, v of columns
+    if name is \*
+      if Array.isArray v
+        v.map qq
+      else
+        ['*']
+    else
+      if v.field
+        [[v.field, name].map qq .join ' '] # as
+      else if v.$literal
+        [that + ' ' + qq name]
+
 export function build_view_source({as,filters,$query}:meta)
   source = as
   unless source is /^SELECT/
-    columns = for name, v of meta.columns ? {'*': {}}
-      if name is \*
-        if Array.isArray v
-          v.map qq
-        else
-          ['*']
-      else
-        if v.field
-          [[v.field, name].map qq .join ' '] # as
-        else if v.$literal
-          [that + ' ' + qq name]
-    source = "SELECT #{columns.reduce (++) .join ", "} FROM #source"
+    columns = select_columns meta.columns ? {'*': {}}
+    source = "SELECT #{columns.join ", "} FROM #source"
     if $query
       source += ' WHERE ' + compile as, $query
   if filters

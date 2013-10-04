@@ -45,7 +45,7 @@ describe 'View Builder', ->
         $query: ad: $not: null
       done!
 
-    .. 'view with relation columns', (done) -> done!; -> #todo, remove to run tests
+    .. 'view with relation columns', (done) ->
       same_sql """
         SELECT *,
           (SELECT COALESCE(ARRAY_TO_JSON(ARRAY_AGG(_)), '[]')
