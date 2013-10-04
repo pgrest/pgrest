@@ -61,6 +61,7 @@ export function test(model, key, expr)
           "(#key @> #res)"
       | \$ => let model-table = qq "#{model}s"
           "(#key = #model-table.#{ qq ref })"
+      | \$literal => "(#key = #ref)"
       | _ => throw "Unknown operator: #op"
   | \undefined => [true]
 
@@ -94,8 +95,14 @@ function select_columns(columns)
         [[v.field, name].map qq .join ' '] # as
       else if v.$literal
         [that + ' ' + qq name]
+      else if v.$from
+        ["""
+          (SELECT COALESCE(ARRAY_TO_JSON(ARRAY_AGG(_)), '[]') FROM (
+            #{build_view_source {as: v.$from, v.$query, v.$order, v.columns}}
+          ) _
+          ) #{qq name}"""]
 
-export function build_view_source({as,filters,$query}:meta)
+export function build_view_source({as,filters,$query,$order}:meta)
   source = as
   unless source is /^SELECT/
     columns = select_columns meta.columns ? {'*': {}}
@@ -108,4 +115,6 @@ export function build_view_source({as,filters,$query}:meta)
     #{ if $query => 'AND' else 'WHERE' }
     #{ ["(select count(true) >= 0 from #filter limit 1)" for filter of filters].join " AND "}
     """
+
+  source += " ORDER BY " + order-by $order if $order
   source

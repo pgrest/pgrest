@@ -49,17 +49,19 @@ describe 'View Builder', ->
       same_sql """
         SELECT *,
           (SELECT COALESCE(ARRAY_TO_JSON(ARRAY_AGG(_)), '[]')
-           FROM (SELECT calendar.id as calendar_id, chair, date, time_start, time_end
+           FROM ( SELECT "calendar".id "calendar_id", "chair", "date", "time_start", "time_end"
                  FROM pgrest.calendar
-                 WHERE sitting_id = sittings.id ORDER BY calendar.id) _) dates
+                 WHERE ("sitting_id" = sittings.id) ORDER BY "id" ASC ) _ ) "dates"
         FROM public.sittings
       """, build_view_source do
         columns:
+          '*': {}
           dates:
             $from: 'pgrest.calendar'
-            $query: 'sitting_id': $literal: 'sitting.id'
-            s: {id: 1}
+            $query: 'sitting_id': $literal: 'sittings.id'
+            $order: {id: 1}
             columns:
+              'calendar_id': field: 'calendar.id'
               '*': <[chair date time_start time_end]>
-        as: 'sittings'
+        as: 'public.sittings'
       done!
