@@ -26,7 +26,7 @@ exports.new = (conString, config, cb) ->
   return cb plx if cb
   return plx.conn.end!
 
-{q,qq,compile,build_view_source} = require \./sql
+{q,qq,compile,build_view_source,order-by} = require \./sql
 
 export routes = -> require \./routes
 export get-opts = -> require \./cli .get-opts
