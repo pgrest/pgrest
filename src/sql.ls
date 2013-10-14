@@ -88,6 +88,10 @@ function select_columns(columns)
     if name is \*
       if Array.isArray v
         v.map qq
+      else if Object.keys v .length
+        res = for rel, col of v
+          select_columns '*': col .map -> "#rel.#it"
+        res
       else
         ['*']
     else

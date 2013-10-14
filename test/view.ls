@@ -65,3 +65,13 @@ describe 'View Builder', ->
               '*': <[chair date time_start time_end]>
         as: 'public.sittings'
       done!
+
+    .. 'view with subset of columns', (done) ->
+      same_sql """
+        SELECT motions.*, bills."bill_ref"
+           FROM public.motions JOIN public.bills USING (bill_id)
+      """, build_view_source do
+        as: 'public.motions JOIN public.bills USING (bill_id)'
+        columns:
+          '*': {motions: {}, bills: <[bill_ref]>}
+      done!
