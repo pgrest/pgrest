@@ -95,8 +95,9 @@ function select_columns(columns)
       else
         ['*']
     else
-      if v.field
-        [[v.field, name].map qq .join ' '] # as
+      if v.field or v.type
+        type = if v.type => "::#{v.type}" else ""
+        [[v.field ? name, name].map qq .join "#type "] # as
       else if v.$literal
         [that + ' ' + qq name]
       else if v.$from
