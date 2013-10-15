@@ -16,6 +16,7 @@ exports.new = (conString, config, cb) ->
   plx.boot = (cb) -> plx.ap (-> plv8x.require \pgrest .boot), [config], cb
   plx.conn.on \error ->
     console.log \pgerror it
+    throw it
   <- plx.boot
   <[ select upsert insert replace remove ]>.forEach (method) ->
     plx[method] = (param, cb, onError) ->
