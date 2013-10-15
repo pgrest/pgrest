@@ -128,7 +128,17 @@ export function mount-model (plx, schema, name, _route=route)
         console.log \TODOreconnect
       it { error }
   _route "#name/:_id" !->
-    param = l: 1 fo: yes collection: "#schema.#name" q: { _id: @params._id }
+    collection = "#schema.#name"
+    primary = plx.config.meta[collection].primary
+    q = if primary
+      if \function is typeof primary
+        primary @params._id
+      else
+        "#primary": @params._id
+    else
+      # XXX: derive
+      _id: @params._id
+    param = {collection, q, +fo}
     method = switch @method
     | \GET    => \select
     | \PUT    => \upsert
