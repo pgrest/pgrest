@@ -111,6 +111,18 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
   app
 
 export function mount-model (plx, schema, name, _route=route)
+  locate_record = (name, id) ->
+    collection = "#schema.#name"
+    primary = plx.config.meta[collection].primary
+    q = if primary
+      if \function is typeof primary
+        primary id
+      else
+        "#primary": id
+    else
+      # XXX: derive
+      _id: id
+    {collection, q, +fo}
   _route "#name" !->
     param = @query{ l, sk, c, s, q, fo, f, u, delay } <<< collection: "#schema.#name"
     method = switch @method
@@ -128,17 +140,7 @@ export function mount-model (plx, schema, name, _route=route)
         console.log \TODOreconnect
       it { error }
   _route "#name/:_id" !->
-    collection = "#schema.#name"
-    primary = plx.config.meta[collection].primary
-    q = if primary
-      if \function is typeof primary
-        primary @params._id
-      else
-        "#primary": @params._id
-    else
-      # XXX: derive
-      _id: @params._id
-    param = {collection, q, +fo}
+    param = locate_record name, @params._id
     method = switch @method
     | \GET    => \select
     | \PUT    => \upsert
