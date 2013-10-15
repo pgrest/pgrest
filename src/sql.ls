@@ -35,7 +35,10 @@ export function cond(model, spec)
   | \number => spec
   | \string => qq spec
   | \object =>
+    if spec.$or
+      [cond model, "#k": ex for k, ex of spec.$or].map(-> "(#it)") * " OR "
       # Implicit AND on all k,v
+    else
       ([ test model, qq(k), v for k, v of spec ].reduce (++)) * " AND "
   | _ => it
 
