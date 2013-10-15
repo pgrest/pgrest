@@ -149,6 +149,14 @@ export function mount-model (plx, schema, name, _route=route)
     param.$ = @body
     param.pgparam = @pgparam
     plx[method].call plx, param, it, (error) -> it { error }
+  _route "#name/:_id/:column" !->
+    param = locate_record name, @params._id
+    method = switch @method
+    | \GET    => \select
+    | _       => throw 405
+    param.f = "#{@params.column}": 1
+    param.pgparam = @pgparam
+    plx[method].call plx, param, it, (error) -> it { error }
   return name
 
 export function mount-default (plx, schema, _route=route, cb)
