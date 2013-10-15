@@ -74,6 +74,7 @@ export pgrest_select = with-pgparam (param) ->
     return { count } if c
 
     query += " ORDER BY " + order-by s if s
+    # XXX: document _ special case
     maybe_ = ->
       while it?_?
         it.=_
