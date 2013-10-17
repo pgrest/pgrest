@@ -3,10 +3,10 @@ export function q
     '#{ "#it".replace /'/g "''" }'
   """
 
-export function qq
-  return it if it is '*'
-  it.replace /\.(\d+)/g -> "[#{ parseInt(RegExp.$1) + 1}]"
-    .replace /^([^.]*)/ -> "\"#{ RegExp.$1.replace /"/g '""' }\""
+export function qq => match it
+  | '*' => it
+  | /^(.*?)\.(\d+)$/ => qq(that.1) + "[#{ 1 + parseInt that.2 }]"
+  else => it.replace /^([^.]*)/ -> "\"#{ RegExp.$1.replace /"/g '""' }\""
 
 export function walk(model, meta)
   return [] unless meta?[model]
