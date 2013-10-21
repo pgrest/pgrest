@@ -58,7 +58,9 @@ export pgrest_select = with-pgparam (param) ->
     if pgrest.ColumnsOf[collection]
       columns = [].concat that
       if f
-        inclusive = 1 in [+v for _,v of f]
+        inclusive = 1 in for name, v of f
+          throw 404 unless name in columns
+          +v
         if inclusive
           columns.=filter (f.)
         else
