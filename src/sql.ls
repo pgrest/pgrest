@@ -58,6 +58,12 @@ export function test(model, key, expr)
       | \$gt
           res = evaluate model, ref
           "(#key > #res)"
+      | \$matches
+          res = evaluate model, ref
+          "(#key ~* #res)"
+      | \$matchesCase
+          res = evaluate model, ref
+          "(#key ~ #res)"
       | \$contains
           ref = [ref] unless Array.isArray ref
           res = q "{#{ref.join \,}}"
