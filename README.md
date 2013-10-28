@@ -23,6 +23,8 @@ Once you are have plv8js. use npm to install pgrest:
 
     % npm i -g pgrest
 
+When installing from git checkout, make sure you do `npm i` before `npm i -g .`
+
 # Trying pgrest:
 
     % psql test

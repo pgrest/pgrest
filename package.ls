@@ -7,7 +7,7 @@ description: 'enable REST in postgres'
 version: '0.0.7'
 main: \lib/index.js
 bin:
-  pgrest: 'bin/cmd.ls'
+  pgrest: 'bin/cmd.js'
 repository:
   type: 'git'
   url: 'git://github.com/clkao/pgrest.git'
@@ -17,31 +17,25 @@ scripts:
   """
   prepublish: """
     lsc -cj package.ls &&
-    lsc -bc bin &&
-    chmod 755 bin/cmd.js &&
-    lsc -bc -o lib src
-  """
-  postinstall: """
-    lsc -cj package.ls &&
-    lsc -bc bin &&
+    lsc -bpc bin/cmd.ls > bin/cmd.js &&
     chmod 755 bin/cmd.js &&
     lsc -bc -o lib src
   """
 engines: {node: '*'}
 dependencies:
-  optimist: \0.3.x
+  optimist: \0.6.x
   trycatch: \0.2.4
-  plv8x: \0.5.x
+  plv8x: \0.6.x
   express: \3.1.x
   cors: \0.0.x
   \connect-csv : \*
-  LiveScript: \1.1.1
   winston: \~0.7.2
   async: \0.2.x
 devDependencies:
   mocha: \*
   supertest: \0.7.x
   chai: \*
+  LiveScript: \1.1.x
 optionalDependencies:
   passport: \0.1.x
   'passport-facebook': \1.0.x
