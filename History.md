@@ -1,3 +1,9 @@
+0.0.8 / 2013-10-28
+  * view creation from metadoc
+  * $matches and $matchesCase operators
+  * experimental auth support
+  * improve test coverage
+
 0.0.7 / 2013-08-13
   * improve pg 9.0 compatibility
 
