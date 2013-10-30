@@ -1,4 +1,3 @@
-require! trycatch
 
 export function route (path, fn)
   (req, resp) ->
@@ -19,6 +18,7 @@ export function route (path, fn)
         then resp.send it, { error: it }
         else resp.send 500 { error: "#it" })
       | _       => resp.send 500 { error: "#it" }
+    require! trycatch
     trycatch do
       -> fn.call req, ->
         if it?error
