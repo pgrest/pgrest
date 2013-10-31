@@ -77,16 +77,17 @@ export pgrest_select = with-pgparam (param) ->
     return { count } if c
 
     query += " ORDER BY " + order-by s if s
+    limit = if l is -1 => "" else "limit #l"
     # XXX: document _ special case
     maybe_ = ->
       while it?_?
         it.=_
         it = JSON.parse it if \string is typeof it
       return it
-    return maybe_ (plv8.execute "#query limit $1 offset $2" [l, sk])?0 if fo
+    return maybe_ (plv8.execute "#query #limit offset $1" [sk])?0 if fo
     do
         paging: { count, l, sk }
-        entries: plv8.execute "#query limit $1 offset $2" [l, sk] .map maybe_
+        entries: plv8.execute "#query #limit offset $1" [sk] .map maybe_
         query: cond
 pgrest_select.$plv8x = '(plv8x.json):plv8x.json'
 
