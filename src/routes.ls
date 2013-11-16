@@ -110,19 +110,20 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
   app.get "/logout", middleware, if cb_logout? then cb_logout else default_cb_logout
   app
 
-export function mount-model (plx, schema, name, _route=route)
-  locate_record = (name, id) ->
-    collection = "#schema.#name"
-    primary = plx.config.meta[collection].primary
-    q = if primary
-      if \function is typeof primary
-        primary id
-      else
-        "#primary": id
+locate_record = (plx, schema, name, id) ->
+  collection = "#schema.#name"
+  primary = plx.config.meta[collection]?.primary
+  q = if primary
+    if \function is typeof primary
+      primary id
     else
-      # XXX: derive
-      _id: id
-    {collection, q, +fo}
+      "#primary": id
+  else
+    # XXX: derive
+    _id: id
+  {collection, q, +fo}
+
+export function mount-model (plx, schema, name, _route=route)
   _route "#name" !->
     param = @query{ l, sk, c, s, q, fo, f, u, delay } <<< collection: "#schema.#name"
     method = switch @method
@@ -140,7 +141,7 @@ export function mount-model (plx, schema, name, _route=route)
         console.log \TODOreconnect
       it { error }
   _route "#name/:_id" !->
-    param = locate_record name, @params._id
+    param = locate_record plx, schema, name, @params._id
     method = switch @method
     | \GET    => \select
     | \PUT    => \upsert
@@ -150,7 +151,7 @@ export function mount-model (plx, schema, name, _route=route)
     param.pgparam = @pgparam
     plx[method].call plx, param, it, (error) -> it { error }
   _route "#name/:_id/:column" !(send)->
-    param = locate_record name, @params._id
+    param = locate_record plx, schema, name, @params._id
     method = switch @method
     | \GET    => \select
     | _       => throw 405
@@ -220,3 +221,65 @@ export function mount-default (plx, schema, _route=route, cb)
   _route '/runCommand' -> throw "Not implemented yet"
 
   cb cols
+
+export function mount-socket (plx, schema, io, cb)
+  schema-cond = if schema
+      "IN ('#{schema}')"
+  else
+      "NOT IN ( 'information_schema', 'pg_catalog', 'plv8x')"
+
+  # Generic JSON routing helper
+
+  rows <- plx.query """
+    SELECT t.table_schema scm, t.table_name tbl FROM INFORMATION_SCHEMA.TABLES t WHERE t.table_schema #schema-cond;
+  """
+  seen = {}
+  default-schema = null
+  cols = for {scm, tbl} in rows
+    schema ||= scm
+    if seen[tbl]
+      console.log "#scm.#tbl not loaded, #tbl already in use"
+    else
+      seen[tbl] = true
+      mount-model-socket-event plx, scm, tbl, io
+  default-schema ?= \public
+
+  cb cols
+
+export function mount-model-socket-event (plx, schema, name, io)
+  do
+    # TODO: need refactoring
+    socket <- io.sockets.on('connection')
+    socket.on "GET:#name" !->
+      cb = ->
+        socket.emit "GET:#name", it
+      it ?= {}
+      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = param.body
+      plx[\select].call plx, param, cb, cb
+    socket.on "POST:#name" !->
+      cb = ->
+        socket.emit "POST:#name", it
+      it ?= {}
+      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = param.body
+      plx[\insert].call plx, param, cb, cb
+    socket.on "DELETE:#name" !->
+      cb = ->
+        socket.emit "DELETE:#name", it
+      it ?= {}
+      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = param.body
+      plx[\remove].call plx, param, cb, cb
+    socket.on "PUT:#name" !->
+      cb = ->
+        socket.emit "PUT:#name", it
+      it ?= {}
+      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = param.body
+      if param.u
+        plx[\upsert].call plx, param, cb, cb
+      else
+        plx[\replace].call plx, param, cb, cb
+    
+  return name

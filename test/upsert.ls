@@ -35,7 +35,7 @@ describe 'Upsert', ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test]
       res.paging.count.should.equal 2
       done!
-  describe 'in contention', -> ``it``
+  /*describe 'in contention', -> ``it``
     .. '@FIXME: add test pupose here.', (done) ->
       require! plv8x
       conn = plv8x.connect provide-dbconn!
@@ -48,3 +48,4 @@ describe 'Upsert', ->
         done!
       res <- conn.query """select pgrest_upsert($1)""", [collection: \pgrest_test, $: { $set: {value: \no} }, q: {field: \pgrest_haslock} ]
       console.log res
+      */
