@@ -5,7 +5,7 @@ export function route (path, fn)
     return resp.send 200 if req.method is \OPTION
     resp.setHeader \Content-Type 'application/json; charset=UTF-8'
     done = -> switch typeof it
-      | \number => resp.send it it
+      | \number => resp.send it
       | \object => resp.send 200 JSON.stringify it
       | \string => resp.send "#it"
     handle-error = ->
