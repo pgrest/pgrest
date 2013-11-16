@@ -112,7 +112,7 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
 
 locate_record = (plx, schema, name, id) ->
   collection = "#schema.#name"
-  primary = plx.config.meta[collection]?.primary
+  primary = plx.config?meta?[collection]?.primary
   q = if primary
     if \function is typeof primary
       primary id
@@ -254,30 +254,41 @@ export function mount-model-socket-event (plx, schema, name, io)
       cb = ->
         socket.emit "GET:#name", it
       it ?= {}
-      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-      param.$ = param.body
+      if it._id
+        param = locate_record plx, schema, name, it._id
+      else
+        param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = it.body || ""
       plx[\select].call plx, param, cb, cb
     socket.on "POST:#name" !->
       cb = ->
         socket.emit "POST:#name", it
       it ?= {}
       param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-      param.$ = param.body
+      param.$ = it.body || ""
       plx[\insert].call plx, param, cb, cb
     socket.on "DELETE:#name" !->
       cb = ->
         socket.emit "DELETE:#name", it
       it ?= {}
-      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-      param.$ = param.body
+      if it._id
+        param = locate_record plx, schema, name, it._id
+      else
+        param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = it.body || ""
       plx[\remove].call plx, param, cb, cb
     socket.on "PUT:#name" !->
       cb = ->
         socket.emit "PUT:#name", it
       it ?= {}
-      param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-      param.$ = param.body
+      if it._id
+        param = locate_record plx, schema, name, it._id
+      else
+        param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+      param.$ = it.body || ""
       if param.u
+        plx[\upsert].call plx, param, cb, cb
+      else if it._id
         plx[\upsert].call plx, param, cb, cb
       else
         plx[\replace].call plx, param, cb, cb
