@@ -1,5 +1,5 @@
 <script src="socket.io.js"></script>
-<script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 
 <h1>websocket chat room with PgREST</h1>
 <form>
@@ -12,8 +12,7 @@
 </div>
 
 <script>
-  var s = io.connect('http://106.187.52.200:5678');
-  //var s = io.connect('http://localhost:3000')
+  var s = io.connect('http://localhost:3000')
   window.s = s;
   s.on('CHANNEL:chat', function (data) {
       $("#sub").append(data.speaker + ": " + data.msg + "<br />");
