@@ -136,6 +136,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     io = try require 'socket.io'
     throw "socket.io required for starting server" unless io
     io = io.listen server
+    io.setMaxListeners 0
     io.set "log level", 1
     cols <- mount-socket plx, null, io
 
