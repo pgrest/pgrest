@@ -54,6 +54,7 @@ export function get-opts
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
+    socket: argv.websocket or false
     argv: argv
 
 mk-pgparam = (enabled_auth, cookiename)->
@@ -131,15 +132,15 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   server = http.createServer app
 
-  io = try require 'socket.io'
-  throw "socket.io required for starting server" unless io
-  io = io.listen server
-  io.set "log level", 1
-  cols <- mount-socket plx, null, io
+  if opts.websocket
+    io = try require 'socket.io'
+    throw "socket.io required for starting server" unless io
+    io = io.listen server
+    io.set "log level", 1
+    cols <- mount-socket plx, null, io
 
   <- server.listen opts.port, opts.host, 511
   winston.info "Available collections:\n#{ cols.sort! * ' ' }"
   winston.info "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
-  winston.info "Serving Socket.io client library on http://#{opts.host}:#{opts.port}/socket.io/socket.io.js"
   if cb
     cb app, plx, server
