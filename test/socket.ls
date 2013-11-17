@@ -137,4 +137,18 @@ describe 'Socket' ->
           it.should.deep.eq "test"
           done!
         socket.emit "GET:foo", { _id: 1, _column: "bar" }
+    describe 'SUBSCRIBE:#table', -> ``it``
+      .. 'should create trigger and return OK', (done) ->
+        socket.on \complete ->
+          done!
+        socket.emit "SUBSCRIBE:foo"
+    describe 'SUBSCRIBE:#table', -> ``it``
+      .. 'should receive collection snapshot if triggered', (done) ->
+        socket.on 'CHANNEL:foo' ->
+          it.should.deep.eq { _id: 3, bar: 'new'}
+          done!
+        socket.on \complete ->
+          if it == "OK"
+            socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
+        socket.emit "SUBSCRIBE:foo"
 

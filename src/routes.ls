@@ -295,5 +295,30 @@ export function mount-model-socket-event (plx, schema, name, io)
         plx[\upsert].call plx, param, cb_complete, cb_err
       else
         plx[\replace].call plx, param, cb_complete, cb_err
-    
+    socket.on "SUBSCRIBE:#name" !->
+      q = """
+        CREATE FUNCTION pgrest_subscription_trigger_#name() RETURNS trigger AS $$
+        DECLARE
+        BEGIN
+          PERFORM pg_notify('pgrest_subscription_#name', '' || row_to_json(NEW) );
+          RETURN new;
+        END;
+      $$ LANGUAGE plpgsql;
+      """
+      t = """
+        CREATE TRIGGER pgrest_subscription_trigger
+        AFTER INSERT
+        ON #name FOR EACH ROW
+        EXECUTE PROCEDURE pgrest_subscription_trigger_#name();
+      """
+      plx.conn.query "LISTEN pgrest_subscription_#name"
+      plx.conn.on \notification ~>
+        tbl = it.channel.split("_")[2]
+        socket.emit "CHANNEL:#tbl", JSON.parse it.payload
+      do
+        err, rec <-plx.conn.query q
+        #TODO: only ignore err if it's about trigger alread exists
+        err, rec <- plx.conn.query t
+        cb_complete "OK"
+      
   return name
