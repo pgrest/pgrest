@@ -31,6 +31,8 @@ dependencies:
   \connect-csv : \*
   winston: \~0.7.2
   async: \0.2.x
+  "socket.io": \*
+  "socket.io-client": \*
 devDependencies:
   mocha: \*
   supertest: \0.7.x

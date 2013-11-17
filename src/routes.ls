@@ -110,19 +110,20 @@ export function mount-auth (plx, app, middleware, config, cb_after_auth, cb_logo
   app.get "/logout", middleware, if cb_logout? then cb_logout else default_cb_logout
   app
 
-export function mount-model (plx, schema, name, _route=route)
-  locate_record = (name, id) ->
-    collection = "#schema.#name"
-    primary = plx.config.meta[collection].primary
-    q = if primary
-      if \function is typeof primary
-        primary id
-      else
-        "#primary": id
+export function locate_record (plx, schema, name, id)
+  collection = "#schema.#name"
+  primary = plx.config?meta?[collection]?.primary
+  q = if primary
+    if \function is typeof primary
+      primary id
     else
-      # XXX: derive
-      _id: id
-    {collection, q, +fo}
+      "#primary": id
+  else
+    # XXX: derive
+    _id: id
+  {collection, q, +fo}
+
+export function mount-model (plx, schema, name, _route=route)
   _route "#name" !->
     param = @query{ l, sk, c, s, q, fo, f, u, delay } <<< collection: "#schema.#name"
     method = switch @method
@@ -140,7 +141,7 @@ export function mount-model (plx, schema, name, _route=route)
         console.log \TODOreconnect
       it { error }
   _route "#name/:_id" !->
-    param = locate_record name, @params._id
+    param = locate_record plx, schema, name, @params._id
     method = switch @method
     | \GET    => \select
     | \PUT    => \upsert
@@ -150,7 +151,7 @@ export function mount-model (plx, schema, name, _route=route)
     param.pgparam = @pgparam
     plx[method].call plx, param, it, (error) -> it { error }
   _route "#name/:_id/:column" !(send)->
-    param = locate_record name, @params._id
+    param = locate_record plx, schema, name, @params._id
     method = switch @method
     | \GET    => \select
     | _       => throw 405

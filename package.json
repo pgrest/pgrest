@@ -31,7 +31,9 @@
     "cors": "2.1.x",
     "connect-csv": "*",
     "winston": "~0.7.2",
-    "async": "0.2.x"
+    "async": "0.2.x",
+    "socket.io": "*",
+    "socket.io-client": "*"
   },
   "devDependencies": {
     "mocha": "*",

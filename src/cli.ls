@@ -54,6 +54,7 @@ export function get-opts
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
+    websocket: argv.websocket or false
     argv: argv
 
 mk-pgparam = (enabled_auth, cookiename)->
@@ -92,7 +93,6 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   {mount-default,mount-auth,with-prefix} = pgrest.routes!
 
-
   <- bootstrap plx
 
   process.exit 0 if opts.boot
@@ -130,6 +130,16 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     app.all ...args
 
   server = http.createServer app
+
+  if opts.websocket
+    {mount-socket} = pgrest.socket!
+    
+    io = try require 'socket.io'
+    throw "socket.io required for starting server" unless io
+    io = io.listen server
+    io.set "log level", 1
+    cols <- mount-socket plx, null, io
+
   <- server.listen opts.port, opts.host, 511
   winston.info "Available collections:\n#{ cols.sort! * ' ' }"
   winston.info "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
