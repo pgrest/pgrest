@@ -54,7 +54,7 @@ export function get-opts
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
     app: argv.app or cfg.appname or null
-    socket: argv.websocket or false
+    websocket: argv.websocket or false
     argv: argv
 
 mk-pgparam = (enabled_auth, cookiename)->
