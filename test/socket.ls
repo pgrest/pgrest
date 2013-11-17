@@ -7,8 +7,9 @@ pgrest = require \..
 
 socket-url = 'http://localhost:8080'
 
-var _plx, plx, app
+var _plx, plx, app, socket
 describe 'Socket' ->
+  this.timeout 10000ms
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
     plx := _plx
@@ -22,48 +23,51 @@ describe 'Socket' ->
     INSERT INTO foo (_id, bar) values(2, 'test2');
     """
 
-    unless app
-      {mount-default,mount-socket,with-prefix} = pgrest.routes!
-      app := express!
-      app.use express.cookieParser!
-      app.use express.json!
-      server = require \http .createServer app
-      io = require \socket.io .listen server
-      io.set 'log level', 1
-      server.listen 8080
+    socket := io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+    
+    {mount-default,mount-socket,with-prefix} = pgrest.routes!
+    app := express!
+    app.use express.cookieParser!
+    app.use express.json!
+    server = require \http .createServer app
+    io = require \socket.io .listen server, { log: false}
+    server.listen 8080
 
-      cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
-      cols <- mount-socket plx, null, io
-      done!
-    else
-      done!
+    cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
+    cols <- mount-socket plx, null, io
+    done!
   afterEach (done) ->
     <- plx.query """
     DROP TABLE IF EXISTS foo;
     """
+    socket.disconnect!
     done!
   describe 'with public schema' ->
     # TODO: need refactoring
     describe 'GET:#table', -> ``it``
       .. 'should get all entries in the table', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "GET:foo" ->
+        #socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \error ->
+          throw it
+        socket.on \complete ->
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           it.entries[1].should.deep.eq { _id: 2, bar: 'test2' }
           done!
         socket.emit "GET:foo"
     describe 'GET:#table with query param', -> ``it``
       .. 'should work', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "GET:foo" ->
+        # socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on "complete" ->
           it.paging.count.should.eq 1
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           done!
         socket.emit "GET:foo", { q: '{"_id":1}' }
     describe 'POST:#table', -> ``it``
       .. 'should insert entry to table', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "POST:foo" ->
+        # socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \error ->
+          throw it
+        socket.on \complete ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
           cols.length.should.eq 3
@@ -72,8 +76,10 @@ describe 'Socket' ->
         socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
     describe 'DELETE:#table', -> ``it``
       .. 'should delete all entries in the table', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "DELETE:foo" ->
+        # socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \error ->
+          throw it
+        socket.on \complete ->
           it.should.eq 2
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq []
@@ -81,8 +87,8 @@ describe 'Socket' ->
         socket.emit "DELETE:foo"
     describe 'PUT:#table', -> ``it``
       .. 'should replace entries in the table', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "PUT:foo" ->
+        #  socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on "complete" ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
@@ -90,8 +96,8 @@ describe 'Socket' ->
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'replaced'}}
     describe 'PUT:#table with upsert', -> ``it``
       .. 'should upsert entries in the table', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "PUT:foo" ->
+        #  socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on "complete" ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=2"
           cols[0].should.deep.eq { _id:2, bar: 'upserted'}
@@ -99,15 +105,19 @@ describe 'Socket' ->
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}
     describe 'GET:#table with _id param', -> ``it``
       .. 'should get entry with specified _id', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "GET:foo" ->
+        #socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \error ->
+          throw it
+        socket.on \complete ->
           it.should.deep.eq { _id: 1, bar: 'test'}
           done!
         socket.emit "GET:foo", { _id: 1 }
     describe 'PUT:#table with _id param', -> ``it``
       .. 'should upsert entry with specified _id', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "PUT:foo" ->
+        #   socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \error ->
+          throw it
+        socket.on \complete ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
           cols[0].should.deep.eq { _id:1, bar: 'upserted'}
@@ -115,11 +125,22 @@ describe 'Socket' ->
         socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }
     describe 'DELETE:#table with _id param', -> ``it``
       .. 'should remove entry with specified _id', (done) ->
-        socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-        socket.on "DELETE:foo" ->
+        #   socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \error ->
+          throw it
+        socket.on \complete ->
           it.should.eq 1
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
           cols.length.should.eq 0
           done!
         socket.emit "DELETE:foo", { _id: 1 }
+    describe 'GET:#table with _id and _column param', -> ``it``
+      .. 'should return the column of the entry with specified _id', (done) ->
+        #    socket = io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+        socket.on \complete ->
+          it.should.deep.eq "test"
+          done!
+        socket.on \error ->
+          throw it
+        socket.emit "GET:foo", { _id: 1, _column: "bar" }
 

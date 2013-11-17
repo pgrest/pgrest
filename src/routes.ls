@@ -250,36 +250,39 @@ export function mount-model-socket-event (plx, schema, name, io)
   do
     # TODO: need refactoring
     socket <- io.sockets.on('connection')
+    cb_complete = ->
+      socket.emit "complete", it
+    cb_err = ->
+      socket.emit "error", it
     socket.on "GET:#name" !->
-      cb = ->
-        socket.emit "GET:#name", it
       it ?= {}
       if it._id
         param = locate_record plx, schema, name, it._id
+        if it._column
+          param.f = "#{it._column}": 1
       else
         param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
       param.$ = it.body || ""
-      plx[\select].call plx, param, cb, cb
+      if it._column
+        cb = (record) ->
+          cb_complete record[it._column]
+        plx[\select].call plx, param, cb, cb_err
+      else
+        plx[\select].call plx, param, cb_complete, cb_err
     socket.on "POST:#name" !->
-      cb = ->
-        socket.emit "POST:#name", it
       it ?= {}
       param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
       param.$ = it.body || ""
-      plx[\insert].call plx, param, cb, cb
+      plx[\insert].call plx, param, cb_complete, cb_err
     socket.on "DELETE:#name" !->
-      cb = ->
-        socket.emit "DELETE:#name", it
       it ?= {}
       if it._id
         param = locate_record plx, schema, name, it._id
       else
         param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
       param.$ = it.body || ""
-      plx[\remove].call plx, param, cb, cb
+      plx[\remove].call plx, param, cb_complete, cb_err
     socket.on "PUT:#name" !->
-      cb = ->
-        socket.emit "PUT:#name", it
       it ?= {}
       if it._id
         param = locate_record plx, schema, name, it._id
@@ -287,10 +290,10 @@ export function mount-model-socket-event (plx, schema, name, io)
         param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
       param.$ = it.body || ""
       if param.u
-        plx[\upsert].call plx, param, cb, cb
+        plx[\upsert].call plx, param, cb_complete, cb_err
       else if it._id
-        plx[\upsert].call plx, param, cb, cb
+        plx[\upsert].call plx, param, cb_complete, cb_err
       else
-        plx[\replace].call plx, param, cb, cb
+        plx[\replace].call plx, param, cb_complete, cb_err
     
   return name
