@@ -31,6 +31,8 @@ describe 'Socket' ->
     """
 
     socket := io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+    socket.on \error ->
+      throw it
     
     unless app
       {mount-default,mount-socket,with-prefix} = pgrest.routes!
@@ -53,11 +55,8 @@ describe 'Socket' ->
     socket.disconnect!
     done!
   describe 'with public schema' ->
-    # TODO: need refactoring
     describe 'GET:#table', -> ``it``
       .. 'should get all entries in the table', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           it.entries[1].should.deep.eq { _id: 2, bar: 'test2' }
@@ -65,8 +64,6 @@ describe 'Socket' ->
         socket.emit "GET:foo"
     describe 'GET:#table', -> ``it``
       .. 'should work on any table', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.entries[0].should.deep.eq { _id: 1, info: 't1' }
           it.entries[1].should.deep.eq { _id: 2, info: 't2' }
@@ -81,8 +78,6 @@ describe 'Socket' ->
         socket.emit "GET:foo", { q: '{"_id":1}' }
     describe 'POST:#table', -> ``it``
       .. 'should insert entry to table', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
@@ -92,8 +87,6 @@ describe 'Socket' ->
         socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
     describe 'DELETE:#table', -> ``it``
       .. 'should delete all entries in the table', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.should.eq 2
           cols <- plx.query "SELECT * FROM foo"
@@ -118,16 +111,12 @@ describe 'Socket' ->
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}
     describe 'GET:#table with _id param', -> ``it``
       .. 'should get entry with specified _id', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.should.deep.eq { _id: 1, bar: 'test'}
           done!
         socket.emit "GET:foo", { _id: 1 }
     describe 'PUT:#table with _id param', -> ``it``
       .. 'should upsert entry with specified _id', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
@@ -136,8 +125,6 @@ describe 'Socket' ->
         socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }
     describe 'DELETE:#table with _id param', -> ``it``
       .. 'should remove entry with specified _id', (done) ->
-        socket.on \error ->
-          throw it
         socket.on \complete ->
           it.should.eq 1
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
@@ -149,7 +136,5 @@ describe 'Socket' ->
         socket.on \complete ->
           it.should.deep.eq "test"
           done!
-        socket.on \error ->
-          throw it
         socket.emit "GET:foo", { _id: 1, _column: "bar" }
 
