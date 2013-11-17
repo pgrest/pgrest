@@ -35,7 +35,8 @@ describe 'Socket' ->
       throw it
     
     unless app
-      {mount-default,mount-socket,with-prefix} = pgrest.routes!
+      {mount-default,with-prefix} = pgrest.routes!
+      {mount-socket} = pgrest.socket!
       app := express!
       app.use express.cookieParser!
       app.use express.json!

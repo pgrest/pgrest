@@ -91,8 +91,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   plx <- pgrest.new opts.conString, {opts.meta}
 
-  {mount-default,mount-auth,mount-socket,with-prefix} = pgrest.routes!
-
+  {mount-default,mount-auth,with-prefix} = pgrest.routes!
 
   <- bootstrap plx
 
@@ -133,6 +132,8 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   server = http.createServer app
 
   if opts.websocket
+    {mount-socket} = pgrest.socket!
+    
     io = try require 'socket.io'
     throw "socket.io required for starting server" unless io
     io = io.listen server
