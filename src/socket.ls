@@ -91,15 +91,21 @@ export function mount-model-socket-event (plx, schema, names, io)
             ON #name FOR EACH ROW
             EXECUTE PROCEDURE pgrest_subscription_trigger_#name();
           """
-          plx.conn.query "LISTEN pgrest_subscription_#name"
-          plx.conn.on \notification ~>
+          <- plx.conn.query q
+          <- plx.conn.query t
+          #TODO: only ignore err if it's about trigger alread exists
+
+          err, result <- plx.conn.query "LISTEN pgrest_subscription_#name"
+          notification_cb = ->
             tbl = it.channel.split("_")[2]
-            socket.emit "CHANNEL:#tbl", JSON.parse it.payload
-          do
-            err, rec <-plx.conn.query q
-            #TODO: only ignore err if it's about trigger alread exists
-            err, rec <- plx.conn.query t
-            cb_complete "OK"
+            for socket_id, socket of io.sockets.sockets
+              if io.sockets.sockets[socket_id].listen_table.indexOf tbl != -1
+                io.sockets.sockets[socket_id].emit "CHANNEL:#tbl", JSON.parse it.payload
+          if plx.conn.listeners \notification .length == 0
+            plx.conn.on \notification, notification_cb
+          io.sockets.sockets[socket.id].listen_table ?= []
+          io.sockets.sockets[socket.id].listen_table.push name
+          cb_complete "OK"
       )(name)
   
   return names
