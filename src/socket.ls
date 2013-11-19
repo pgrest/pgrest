@@ -31,6 +31,7 @@ export function mount-model-socket-event (plx, schema, names, io)
     cb_complete = ->
       socket.emit "complete", it
     cb_err = ->
+      console.log it
       socket.emit "error", it
     for name in names
       ((name) ->
@@ -57,37 +58,54 @@ export function mount-model-socket-event (plx, schema, names, io)
               | \DELETE => \remove
               plx[method].call plx, param, cb, cb_err
           )(verb)
-        socket.on "SUBSCRIBE:#name" !->
-          q = """
-            CREATE FUNCTION pgrest_subscription_trigger_#name() RETURNS trigger AS $$
-            DECLARE
-            BEGIN
-              PERFORM pg_notify('pgrest_subscription_#name', '' || row_to_json(NEW) );
-              RETURN new;
-            END;
-          $$ LANGUAGE plpgsql;
-          """
-          t = """
-            CREATE TRIGGER pgrest_subscription_trigger
-            AFTER INSERT
-            ON #name FOR EACH ROW
-            EXECUTE PROCEDURE pgrest_subscription_trigger_#name();
-          """
-          <- plx.conn.query q
-          <- plx.conn.query t
-          #TODO: only ignore err if it's about trigger alread exists
+        for event in <[ value child_added child_changed child_removed ]>
+          ((event) ->
+            socket.on "SUBSCRIBE:#name:#event" !->
+              return_val = switch event
+              | \child_removed => " '' || row_to_json(OLD)"
+              | _              => " '' || row_to_json(NEW)"
+              q = """
+                DROP FUNCTION IF EXISTS pgrest_subscription_trigger_#{name}_#{event}();
+                CREATE FUNCTION pgrest_subscription_trigger_#{name}_#{event}() RETURNS trigger AS $$
+                DECLARE
+                BEGIN
+                  PERFORM pg_notify('pgrest_subscription_#{name}_#{event}', #return_val);
+                  RETURN new;
+                END;
+                $$ LANGUAGE plpgsql;
+              """
+              trigger_event = switch event
+              | \value         => "INSERT OR UPDATE OR DELETE"
+              | \child_added   => \INSERT
+              | \child_changed => \UPDATE
+              | \child_removed => \DELETE
+              t = """
+                CREATE TRIGGER pgrest_subscription_trigger_#event
+                AFTER #trigger_event
+                ON #name FOR EACH ROW
+                EXECUTE PROCEDURE pgrest_subscription_trigger_#{name}_#{event}();
+              """
+              e, r <- plx.conn.query q
+              e, r <- plx.conn.query t
+              err, result <- plx.conn.query "LISTEN pgrest_subscription_#{name}_#{event}"
+              notification_cb = ->
+                tbl = it.channel.split('_')[2]
+                event = it.channel.split('_').slice 3 .join \_
+                row = it.payload
+                for socket_id, socket of io.sockets.sockets
+                  if io.sockets.sockets[socket_id].listen_table.indexOf "#tbl:#event" != -1
+                    if event == \value
+                      cols <- plx.query "SELECT * FROM #tbl"
+                      io.sockets.sockets[socket_id].emit "#tbl:value", cols
+                    else
+                      io.sockets.sockets[socket_id].emit "#tbl:#event", JSON.parse row
+              if plx.conn.listeners \notification .length == 0
+                plx.conn.on \notification, notification_cb
+              io.sockets.sockets[socket.id].listen_table ?= []
+              io.sockets.sockets[socket.id].listen_table.push "#name:#event"
 
-          err, result <- plx.conn.query "LISTEN pgrest_subscription_#name"
-          notification_cb = ->
-            tbl = it.channel.split("_")[2]
-            for socket_id, socket of io.sockets.sockets
-              if io.sockets.sockets[socket_id].listen_table.indexOf tbl != -1
-                io.sockets.sockets[socket_id].emit "CHANNEL:#tbl", JSON.parse it.payload
-          if plx.conn.listeners \notification .length == 0
-            plx.conn.on \notification, notification_cb
-          io.sockets.sockets[socket.id].listen_table ?= []
-          io.sockets.sockets[socket.id].listen_table.push name
-          cb_complete "OK"
+              cb_complete \OK
+          )(event)
       )(name)
   
   return names

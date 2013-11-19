@@ -52,6 +52,7 @@ describe 'Socket' ->
   afterEach (done) ->
     <- plx.query """
     DROP TABLE IF EXISTS foo;
+    DROP TABLE IF EXISTS bar;
     """
     socket.disconnect!
     done!
@@ -138,18 +139,51 @@ describe 'Socket' ->
           it.should.deep.eq "test"
           done!
         socket.emit "GET:foo", { _id: 1, _column: "bar" }
-    describe 'SUBSCRIBE:#table', -> ``it``
+  describe 'Subscription' ->
+    describe 'SUBSCRIBE:#table:value', -> ``it``
       .. 'should create trigger and return OK', (done) ->
         socket.on \complete ->
           done!
-        socket.emit "SUBSCRIBE:foo"
-    describe 'SUBSCRIBE:#table', -> ``it``
-      .. 'should receive collection snapshot if triggered', (done) ->
-        socket.on 'CHANNEL:foo' ->
+        socket.emit "SUBSCRIBE:foo:value"
+    describe 'SUBSCRIBE:#table:child_added', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:child_added' ->
           it.should.deep.eq { _id: 3, bar: 'new'}
           done!
         socket.on \complete ->
           if it == "OK"
             socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
-        socket.emit "SUBSCRIBE:foo"
+        socket.emit "SUBSCRIBE:foo:child_added"
+    describe 'SUBSCRIBE:#table:child_removed', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:child_removed' ->
+          it.should.deep.eq { _id: 1, bar: 'test'}
+          done!
+        socket.on \complete ->
+          if it == "OK"
+            socket.emit "DELETE:foo", { _id: 1 }
+        socket.emit "SUBSCRIBE:foo:child_removed"
+    describe 'SUBSCRIBE:#table:child_changed', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:child_changed' ->
+          it.should.deep.eq { _id: 2, bar: 'replaced'}
+          done!
+        socket.on \complete ->
+          if it == "OK"
+            socket.emit "PUT:foo", { _id: 1, body: { _id: 2, bar: 'replaced'}}
+        socket.emit "SUBSCRIBE:foo:child_changed"
+    describe 'SUBSCRIBE:#table:value', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:value' ->
+          it.length.should.eq 3
+          it[0].should.deep.eq { _id: 1, bar: 'test'}
+          it[1].should.deep.eq { _id: 2, bar: 'test2'}
+          it[2].should.deep.eq { _id: 3, bar: 'new'}
+          done!
+        socket.on \complete ->
+          if it == "OK"
+            socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
+        socket.emit "SUBSCRIBE:foo:value"
+
+
 
