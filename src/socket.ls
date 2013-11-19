@@ -34,47 +34,29 @@ export function mount-model-socket-event (plx, schema, names, io)
       socket.emit "error", it
     for name in names
       ((name) ->
-        socket.on "GET:#name" !->
-          it ?= {}
-          if it._id
-            param = locate_record plx, schema, name, it._id
-            if it._column
-              param.f = "#{it._column}": 1
-          else
-            param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-          param.$ = it.body || ""
-          if it._column
-            cb = (record) ->
-              cb_complete record[it._column]
-            plx[\select].call plx, param, cb, cb_err
-          else
-            plx[\select].call plx, param, cb_complete, cb_err
-        socket.on "POST:#name" !->
-          it ?= {}
-          param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-          param.$ = it.body || ""
-          plx[\insert].call plx, param, cb_complete, cb_err
-        socket.on "DELETE:#name" !->
-          it ?= {}
-          if it._id
-            param = locate_record plx, schema, name, it._id
-          else
-            param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-          param.$ = it.body || ""
-          plx[\remove].call plx, param, cb_complete, cb_err
-        socket.on "PUT:#name" !->
-          it ?= {}
-          if it._id
-            param = locate_record plx, schema, name, it._id
-          else
-            param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-          param.$ = it.body || ""
-          if param.u
-            plx[\upsert].call plx, param, cb_complete, cb_err
-          else if it._id
-            plx[\upsert].call plx, param, cb_complete, cb_err
-          else
-            plx[\replace].call plx, param, cb_complete, cb_err
+        for verb in <[ GET POST PUT DELETE ]>
+          ((verb) ->
+            socket.on "#verb:#name" !->
+              it ?= {}
+              if it._id
+                param = locate_record plx, schema, name, it._id
+              else
+                param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+              param.$ = it.body || ""
+
+              if it._column
+                cb = (record) ->
+                  cb_complete record[it._column]
+              else
+                cb = cb_complete
+
+              method = switch verb
+              | \GET    => \select
+              | \POST   => \insert
+              | \PUT    => (if param.u or it._id then \upsert else \replace)
+              | \DELETE => \remove
+              plx[method].call plx, param, cb, cb_err
+          )(verb)
         socket.on "SUBSCRIBE:#name" !->
           q = """
             CREATE FUNCTION pgrest_subscription_trigger_#name() RETURNS trigger AS $$
