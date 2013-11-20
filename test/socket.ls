@@ -59,112 +59,94 @@ describe 'Socket' ->
   describe 'with public schema' ->
     describe 'GET:#table', -> ``it``
       .. 'should get all entries in the table', (done) ->
-        socket.on \complete ->
+        socket.emit "GET:foo", ->
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           it.entries[1].should.deep.eq { _id: 2, bar: 'test2' }
           done!
-        socket.emit "GET:foo"
       .. 'should work on any table', (done) ->
-        socket.on \complete ->
+        socket.emit "GET:bar", ->
           it.entries[0].should.deep.eq { _id: 1, info: 't1' }
           it.entries[1].should.deep.eq { _id: 2, info: 't2' }
           done!
-        socket.emit "GET:bar"
       .. 'should work with query params', (done) ->
-        socket.on "complete" ->
+        socket.emit "GET:foo", { q: '{"_id":1}' }, ->
           it.paging.count.should.eq 1
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           done!
-        socket.emit "GET:foo", { q: '{"_id":1}' }
       .. 'should be able to get entry with specified _id', (done) ->
-        socket.on \complete ->
+        socket.emit "GET:foo", { _id: 1 }, ->
           it.should.deep.eq { _id: 1, bar: 'test'}
           done!
-        socket.emit "GET:foo", { _id: 1 }
       .. 'should be able to return the column of the entry with specified _id', (done) ->
-        socket.on \complete ->
+        socket.emit "GET:foo", { _id: 1, _column: "bar" }, ->
           it.should.deep.eq "test"
           done!
-        socket.emit "GET:foo", { _id: 1, _column: "bar" }
     describe 'POST:#table', -> ``it``
       .. 'should insert entry to table', (done) ->
-        socket.on \complete ->
+        socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}, ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
           cols.length.should.eq 3
           cols[2].should.deep.eq { _id:3, bar: "new"}
           done!
-        socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
     describe 'DELETE:#table', -> ``it``
       .. 'should delete all entries in the table', (done) ->
-        socket.on \complete ->
+        socket.emit "DELETE:foo", ->
           it.should.eq 2
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq []
           done!
-        socket.emit "DELETE:foo"
       .. 'should be able to remove entry with specified _id', (done) ->
-        socket.on \complete ->
+        socket.emit "DELETE:foo", { _id: 1 }, ->
           it.should.eq 1
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
           cols.length.should.eq 0
           done!
-        socket.emit "DELETE:foo", { _id: 1 }
     describe 'PUT:#table', -> ``it``
       .. 'should replace entries in the table', (done) ->
-        socket.on "complete" ->
+        socket.emit "PUT:foo", { body: { _id: 2, bar: 'replaced'}}, ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
           done!
-        socket.emit "PUT:foo", { body: { _id: 2, bar: 'replaced'}}
       .. 'should upsert entries in the table', (done) ->
-        socket.on "complete" ->
+        socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}, ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=2"
           cols[0].should.deep.eq { _id:2, bar: 'upserted'}
           done!
-        socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}
       .. 'should be able to upsert entry with specified _id', (done) ->
-        socket.on \complete ->
+        socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }, ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
           cols[0].should.deep.eq { _id:1, bar: 'upserted'}
           done!
-        socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }
   describe 'Subscription' ->
     describe 'SUBSCRIBE:#table:value', -> ``it``
       .. 'should create trigger and return OK', (done) ->
-        socket.on \complete ->
-          done!
-        socket.emit "SUBSCRIBE:foo:value"
+        <- socket.emit "SUBSCRIBE:foo:value"
+        done!
     describe 'SUBSCRIBE:#table:child_added', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:child_added' ->
           it.should.deep.eq { _id: 3, bar: 'new'}
           done!
-        socket.on \complete ->
-          if it == "OK"
-            socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
-        socket.emit "SUBSCRIBE:foo:child_added"
+        <- socket.emit "SUBSCRIBE:foo:child_added"
+        <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
     describe 'SUBSCRIBE:#table:child_removed', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:child_removed' ->
           it.should.deep.eq { _id: 1, bar: 'test'}
           done!
-        socket.on \complete ->
-          if it == "OK"
-            socket.emit "DELETE:foo", { _id: 1 }
-        socket.emit "SUBSCRIBE:foo:child_removed"
+        <- socket.emit "SUBSCRIBE:foo:child_removed"
+        <- socket.emit "DELETE:foo", { _id: 1 }
     describe 'SUBSCRIBE:#table:child_changed', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:child_changed' ->
           it.should.deep.eq { _id: 2, bar: 'replaced'}
           done!
-        socket.on \complete ->
-          if it == "OK"
-            socket.emit "PUT:foo", { _id: 1, body: { _id: 2, bar: 'replaced'}}
-        socket.emit "SUBSCRIBE:foo:child_changed"
+        <- socket.emit "SUBSCRIBE:foo:child_changed"
+        <- socket.emit "PUT:foo", { _id: 1, body: { _id: 2, bar: 'replaced'}}
     describe 'SUBSCRIBE:#table:value', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:value' ->
@@ -173,10 +155,8 @@ describe 'Socket' ->
           it[1].should.deep.eq { _id: 2, bar: 'test2'}
           it[2].should.deep.eq { _id: 3, bar: 'new'}
           done!
-        socket.on \complete ->
-          if it == "OK"
-            socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
-        socket.emit "SUBSCRIBE:foo:value"
+        <- socket.emit "SUBSCRIBE:foo:value"
+        <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
 
 
 

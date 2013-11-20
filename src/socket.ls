@@ -28,8 +28,6 @@ export function mount-model-socket-event (plx, schema, names, io)
   do
     # TODO: need refactoring
     socket <- io.sockets.on('connection')
-    cb_complete = ->
-      socket.emit "complete", it
     cb_err = ->
       console.log it
       socket.emit "error", it
@@ -38,29 +36,35 @@ export function mount-model-socket-event (plx, schema, names, io)
         for verb in <[ GET POST PUT DELETE ]>
           ((verb) ->
             socket.on "#verb:#name" !->
-              it ?= {}
-              if it._id
-                param = locate_record plx, schema, name, it._id
+              if arguments.length == 2
+                p = arguments[0]
+                cb = arguments[1]
               else
-                param = it{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-              param.$ = it.body || ""
+                p = {}
+                cb = arguments[0]
+              if p._id
+                param = locate_record plx, schema, name, p._id
+              else
+                param = p{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+              param.$ = p.body || ""
 
-              if it._column
-                cb = (record) ->
-                  cb_complete record[it._column]
+              if p._column
+                callback = (record) ->
+                  cb record[p._column]
               else
-                cb = cb_complete
+                callback = cb
 
               method = switch verb
               | \GET    => \select
               | \POST   => \insert
-              | \PUT    => (if param.u or it._id then \upsert else \replace)
+              | \PUT    => (if param.u or p._id then \upsert else \replace)
               | \DELETE => \remove
-              plx[method].call plx, param, cb, cb_err
+              plx[method].call plx, param, callback, cb_err
           )(verb)
         for event in <[ value child_added child_changed child_removed ]>
           ((event) ->
             socket.on "SUBSCRIBE:#name:#event" !->
+              cb = arguments[0]
               return_val = switch event
               | \child_removed => " '' || row_to_json(OLD)"
               | _              => " '' || row_to_json(NEW)"
@@ -104,7 +108,7 @@ export function mount-model-socket-event (plx, schema, names, io)
               io.sockets.sockets[socket.id].listen_table ?= []
               io.sockets.sockets[socket.id].listen_table.push "#name:#event"
 
-              cb_complete \OK
+              cb \OK
           )(event)
       )(name)
   
