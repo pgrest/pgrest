@@ -64,20 +64,28 @@ describe 'Socket' ->
           it.entries[1].should.deep.eq { _id: 2, bar: 'test2' }
           done!
         socket.emit "GET:foo"
-    describe 'GET:#table', -> ``it``
       .. 'should work on any table', (done) ->
         socket.on \complete ->
           it.entries[0].should.deep.eq { _id: 1, info: 't1' }
           it.entries[1].should.deep.eq { _id: 2, info: 't2' }
           done!
         socket.emit "GET:bar"
-    describe 'GET:#table with query param', -> ``it``
-      .. 'should work', (done) ->
+      .. 'should work with query params', (done) ->
         socket.on "complete" ->
           it.paging.count.should.eq 1
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           done!
         socket.emit "GET:foo", { q: '{"_id":1}' }
+      .. 'should be able to get entry with specified _id', (done) ->
+        socket.on \complete ->
+          it.should.deep.eq { _id: 1, bar: 'test'}
+          done!
+        socket.emit "GET:foo", { _id: 1 }
+      .. 'should be able to return the column of the entry with specified _id', (done) ->
+        socket.on \complete ->
+          it.should.deep.eq "test"
+          done!
+        socket.emit "GET:foo", { _id: 1, _column: "bar" }
     describe 'POST:#table', -> ``it``
       .. 'should insert entry to table', (done) ->
         socket.on \complete ->
@@ -95,6 +103,13 @@ describe 'Socket' ->
           cols.should.deep.eq []
           done!
         socket.emit "DELETE:foo"
+      .. 'should be able to remove entry with specified _id', (done) ->
+        socket.on \complete ->
+          it.should.eq 1
+          cols <- plx.query "SELECT * FROM foo WHERE _id=1"
+          cols.length.should.eq 0
+          done!
+        socket.emit "DELETE:foo", { _id: 1 }
     describe 'PUT:#table', -> ``it``
       .. 'should replace entries in the table', (done) ->
         socket.on "complete" ->
@@ -103,7 +118,6 @@ describe 'Socket' ->
           cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
           done!
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'replaced'}}
-    describe 'PUT:#table with upsert', -> ``it``
       .. 'should upsert entries in the table', (done) ->
         socket.on "complete" ->
           it.should.deep.eq { updated: true }
@@ -111,34 +125,13 @@ describe 'Socket' ->
           cols[0].should.deep.eq { _id:2, bar: 'upserted'}
           done!
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}
-    describe 'GET:#table with _id param', -> ``it``
-      .. 'should get entry with specified _id', (done) ->
-        socket.on \complete ->
-          it.should.deep.eq { _id: 1, bar: 'test'}
-          done!
-        socket.emit "GET:foo", { _id: 1 }
-    describe 'PUT:#table with _id param', -> ``it``
-      .. 'should upsert entry with specified _id', (done) ->
+      .. 'should be able to upsert entry with specified _id', (done) ->
         socket.on \complete ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
           cols[0].should.deep.eq { _id:1, bar: 'upserted'}
           done!
         socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }
-    describe 'DELETE:#table with _id param', -> ``it``
-      .. 'should remove entry with specified _id', (done) ->
-        socket.on \complete ->
-          it.should.eq 1
-          cols <- plx.query "SELECT * FROM foo WHERE _id=1"
-          cols.length.should.eq 0
-          done!
-        socket.emit "DELETE:foo", { _id: 1 }
-    describe 'GET:#table with _id and _column param', -> ``it``
-      .. 'should return the column of the entry with specified _id', (done) ->
-        socket.on \complete ->
-          it.should.deep.eq "test"
-          done!
-        socket.emit "GET:foo", { _id: 1, _column: "bar" }
   describe 'Subscription' ->
     describe 'SUBSCRIBE:#table:value', -> ``it``
       .. 'should create trigger and return OK', (done) ->
