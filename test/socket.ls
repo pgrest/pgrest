@@ -115,7 +115,7 @@ describe 'Socket' ->
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
           done!
-      .. 'should upsert entries in the table', (done) ->
+      .. 'should upsert entries in the table when u == true', (done) ->
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}, ->
           it.should.deep.eq { updated: true }
           cols <- plx.query "SELECT * FROM foo WHERE _id=2"
@@ -146,6 +146,12 @@ describe 'Socket' ->
           done!
         <- socket.emit "SUBSCRIBE:foo:child_removed"
         <- socket.emit "DELETE:foo", { _id: 1 }
+      .. 'should receive snapshot if the whole collection is deleted', (done) ->
+        socket.on 'foo:child_removed' ->
+          if it._id == 1
+            done!
+        <- socket.emit "SUBSCRIBE:foo:child_removed"
+        <- socket.emit "DELETE:foo"
     describe 'SUBSCRIBE:#table:child_changed', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:child_changed' ->
