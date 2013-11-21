@@ -26,14 +26,13 @@ export function mount-socket (plx, schema, io, cb)
 
 export function mount-model-socket-event (plx, schema, names, io)
   do
-    # TODO: need refactoring
     socket <- io.sockets.on('connection')
     cb_err = ->
       console.log it
       socket.emit "error", it
     for name in names
       ((name) ->
-        for verb in <[ GET POST PUT DELETE ]>
+        for verb in <[ GET POST PUT DELETE GETALL ]>
           ((verb) ->
             socket.on "#verb:#name" !->
               if arguments.length == 2
@@ -42,24 +41,28 @@ export function mount-model-socket-event (plx, schema, names, io)
               else
                 p = {}
                 cb = arguments[0]
-              if p._id
-                param = locate_record plx, schema, name, p._id
+              if verb == \GETALL
+                cols <- plx.query "SELECT * FROM #name"
+                cb cols
               else
-                param = p{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
-              param.$ = p.body || ""
+                if p._id
+                  param = locate_record plx, schema, name, p._id
+                else
+                  param = p{ l, sk, c, s, q, fo, f, u, delay, body } <<< collection: "#schema.#name"
+                param.$ = p.body || ""
 
-              if p._column
-                callback = (record) ->
-                  cb record[p._column]
-              else
-                callback = cb
+                if p._column
+                  callback = (record) ->
+                    cb record[p._column]
+                else
+                  callback = cb
 
-              method = switch verb
-              | \GET    => \select
-              | \POST   => \insert
-              | \PUT    => (if param.u or p._id then \upsert else \replace)
-              | \DELETE => \remove
-              plx[method].call plx, param, callback, cb_err
+                method = switch verb
+                | \GET    => \select
+                | \POST   => \insert
+                | \PUT    => (if param.u or p._id then \upsert else \replace)
+                | \DELETE => \remove
+                plx[method].call plx, param, callback, cb_err
           )(verb)
         for event in <[ value child_added child_changed child_removed ]>
           ((event) ->

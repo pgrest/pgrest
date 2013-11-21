@@ -57,6 +57,12 @@ describe 'Socket' ->
     socket.disconnect!
     done!
   describe 'with public schema' ->
+    describe 'GETALL:#table', -> ``it``
+      .. 'should return all entries in the table without pagination', (done) ->
+        socket.emit "GETALL:foo", ->
+          it[0].should.deep.eq { _id: 1, bar: 'test' }
+          it[1].should.deep.eq { _id: 2, bar: 'test2' }
+          done!
     describe 'GET:#table', -> ``it``
       .. 'should get all entries in the table', (done) ->
         socket.emit "GET:foo", ->
