@@ -34,21 +34,18 @@ describe 'Socket' ->
     socket.on \error ->
       throw it
     
-    unless app
-      {mount-default,with-prefix} = pgrest.routes!
-      {mount-socket} = pgrest.socket!
-      app := express!
-      app.use express.cookieParser!
-      app.use express.json!
-      server = require \http .createServer app
-      io = require \socket.io .listen server, { log: false}
-      server.listen 8080
+    {mount-default,with-prefix} = pgrest.routes!
+    {mount-socket} = pgrest.socket!
+    app := express!
+    app.use express.cookieParser!
+    app.use express.json!
+    server = require \http .createServer app
+    io = require \socket.io .listen server, { log: false}
+    server.listen 8080
 
-      cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
-      cols <- mount-socket plx, null, io
-      done!
-    else
-      done!
+    cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
+    cols <- mount-socket plx, null, io
+    done!
   afterEach (done) ->
     <- plx.query """
     DROP TABLE IF EXISTS foo;
@@ -114,6 +111,12 @@ describe 'Socket' ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
+          done!
+      .. 'should be able to replace collection with multiple entries', (done) ->
+        socket.emit "PUT:foo", { body: [{ _id: 1, bar: 'replaced'},{ _id: 2, bar: 'replaced'}]}, ->
+          it.should.deep.eq [1, 1]
+          cols <- plx.query "SELECT * FROM foo"
+          cols.should.deep.eq [{ _id: 1, bar: 'replaced'},{ _id:2, bar: 'replaced'}]
           done!
       .. 'should upsert entries in the table when u == true', (done) ->
         socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}, ->
