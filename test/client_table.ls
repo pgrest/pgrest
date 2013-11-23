@@ -61,6 +61,12 @@ describe 'Websocket Client on Collection' ->
         client.on \value ->
           it.length.should.eq 2
           done!
+    describe "Events", -> ``it``
+      .. 'should trigger \'value\' when pushed', (done) ->
+        <- client.on \value ->
+          if it.length == 3
+            done!
+        client.push { _id: 3, bar: \insert }
     describe "Setting values", -> ``it``
       .. '.set should replace the whole collection', (done) ->
         client.set { _id: 1, bar: "replaced" }
@@ -93,12 +99,31 @@ describe 'Websocket Client on Collection' ->
         <- client.on \child_added, ->
           done!
         client.push { _id: 3, bar: \inesrt }
+      .. '.push should trigger value event', (done) ->
+        <- client.on \value, ->
+          if it.length == 3
+            done!
+        client.push { _id:3, bar: \insert }
     describe "Removing values", -> ``it``
       .. '.remove should clear the collection', (done) ->
-        client.remove!
+        <- client.remove!
         client.on \value, ->
           it.length.should.eq 0
           done!
+      .. '.remove should work if collection has value trigger on it', (done) ->
+        <- client.on \value, ->
+          if it.length == 0
+            done!
+        client.remove!
+      .. '.remove should work if collection has child_added trigger on it', (done) ->
+        <- client.on \child_added, ->
+        client.remove!
+        done!
+      .. '.remove should work if collection has child_removed trigger on it', (done) ->
+        <- client.on \child_removed, ->
+          if it._id == 1
+            done!
+        client.remove!
       .. '.remove can provide a callback to know when completed', (done) ->
         <- client.remove
         done!

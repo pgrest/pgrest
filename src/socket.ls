@@ -77,7 +77,7 @@ export function mount-model-socket-event (plx, schema, names, io)
                 DECLARE
                 BEGIN
                   PERFORM pg_notify('pgrest_subscription_#{name}_#{event}', #return_val);
-                  RETURN new;
+                  RETURN NULL;
                 END;
                 $$ LANGUAGE plpgsql;
               """
