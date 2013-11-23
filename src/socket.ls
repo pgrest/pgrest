@@ -100,7 +100,7 @@ export function mount-model-socket-event (plx, schema, names, io)
                 event = it.channel.split('_').slice 3 .join \_
                 row = it.payload
                 for socket_id, socket of io.sockets.sockets
-                  if io.sockets.sockets[socket_id].listen_table.indexOf "#tbl:#event" != -1
+                  if io.sockets.sockets[socket_id].listen_table?indexOf "#tbl:#event" != -1
                     if event == \value
                       cols <- plx.query "SELECT * FROM #tbl"
                       io.sockets.sockets[socket_id].emit "#tbl:value", cols
@@ -108,8 +108,8 @@ export function mount-model-socket-event (plx, schema, names, io)
                       io.sockets.sockets[socket_id].emit "#tbl:#event", JSON.parse row
               if plx.conn.listeners \notification .length == 0
                 plx.conn.on \notification, notification_cb
-              io.sockets.sockets[socket.id].listen_table ?= []
-              io.sockets.sockets[socket.id].listen_table.push "#name:#event"
+              io.sockets.sockets[socket.id]?listen_table ?= []
+              io.sockets.sockets[socket.id]?listen_table.push "#name:#event"
 
               cb \OK
           )(event)
