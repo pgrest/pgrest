@@ -9,8 +9,10 @@ class Ref
 
     if @col
       @refType = \column
+      @id = parseInt @id, 10
     else if @id
       @refType = \entry
+      @id = parseInt @id, 10
     else if @tbl
       @refType = \collection
     else
@@ -47,18 +49,34 @@ class Ref
         @socket.on "#{@tbl}:child_changed", filtered_cb
         @bare_cbs[cb] = filtered_cb
 
-        @socket.emit "GET:#{@tbl}", { q: "{\"_id\": #{@id} }"}, -> cb? it.entries[0]
+        @socket.emit "GET:#{@tbl}", { _id: @id }, -> cb? it
         <- @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
         subscribe-complete-cb?!
       case \child_added
-        # NOT SUPPORTED
-        subscribe-complete-cb?!
+        ...
       case \child_changed
-        # NOT SUPPORTED
-        subscribe-complete-cb?!
+        ...
       case \child_removed
-        # NOT SUPPORTED
+        ...
+    case \column
+      switch event
+      case \value
+        @bare_cbs ?= {}
+        filtered_cb = ->
+          if it._id == @id
+            cb it[@col]
+        @socket.on "#{@tbl}:child_changed", filtered_cb
+        @bare_cbs[cb] = filtered_cb
+
+        @socket.emit "GET:#{@tbl}", { _id: @id, _column: @col }, -> cb? it
+        <- @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
         subscribe-complete-cb?!
+      case \child_added
+        ...
+      case \child_changed
+        ...
+      case \child_removed
+        ...
 
   set: (value, cb) ->
     switch @refType
@@ -66,20 +84,26 @@ class Ref
       @socket.emit "PUT:#{@tbl}", { body: value }, -> cb? it
     case \entry
       @socket.emit "PUT:#{@tbl}", { body: value, u: true }, -> cb? it
+    case \column
+      @socket.emit "PUT:#{@tbl}", { _id: @id, body: { "#{@col}": value }, u: true}, -> cb? it
 
   push: (value, cb) ->
     switch @refType
     case \collection
       @socket.emit "POST:#{@tbl}", { body: value }, -> cb? it
     case \entry
-      throw new Error "not implemented"
+      ...
+    case \column
+      ...
 
   update: (value, cb) ->
     switch @refType
     case \collection
-      throw new Error "not implemented"
+      ...
     case \entry
       @socket.emit "PUT:#{@tbl}", { body: value, u: true }, -> cb? it
+    case \column
+      ...
 
   remove: (cb) ->
     switch @refType
@@ -87,6 +111,8 @@ class Ref
       @socket.emit "DELETE:#{@tbl}", -> cb? it
     case \entry
       @socket.emit "DELETE:#{@tbl}", { _id: @id }, -> cb? it
+    case \column
+      @socket.emit "PUT:#{@tbl}", { _id: @id, body: { "#{@col}": null }, u: true}, -> cb? it
 
   off: (event, cb) ->
     switch @refType
@@ -105,7 +131,16 @@ class Ref
         else
           @socket.removeAllListeners "#{@tbl}:child_changed"
       else
-        #NOT SUPPORTED
+        ...
+    case \column
+      if event == \value
+        if cb
+          if @bare_cbs[cb]
+            @socket.removeListener "#{@tbl}:child_changed", @bare_cbs[cb]
+        else
+          @socket.removeAllListeners "#{@tbl}:child_changed"
+      else
+        ...
 
   once: (event, cb, subscribe-complete-cb) ->
     switch @refType
@@ -117,6 +152,11 @@ class Ref
     case \entry
       once_cb = ~>
         if it._id == @id
+          cb it
+          @off(event, once_cb)
+      @on(event, once_cb, subscribe-complete-cb)
+    case \column
+      once_cb = ~>
           cb it
           @off(event, once_cb)
       @on(event, once_cb, subscribe-complete-cb)
@@ -133,6 +173,8 @@ class Ref
       @tbl
     case \entry
       @id
+    case \column
+      @col
 
   parent: ->
     switch @refType
@@ -140,10 +182,16 @@ class Ref
       @root!
     case \entry
       "#{@root!}/#{@tbl}"
+    case \column
+      "#{@root!}/#{@tbl}/#{@id}"
 
   child: ->
     switch @refType
     case \collection
       new Ref("#{@toString!}/#{it}")
+    case \entry
+      new Ref("#{@toString!}/#{it}")
+    case \column
+      ...
 
 exports.Ref = Ref

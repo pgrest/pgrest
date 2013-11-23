@@ -13,8 +13,10 @@
       ref$ = this.pathname.split('/'), this.tbl = ref$[1], this.id = ref$[2], this.col = ref$[3];
       if (this.col) {
         this.refType = 'column';
+        this.id = parseInt(this.id, 10);
       } else if (this.id) {
         this.refType = 'entry';
+        this.id = parseInt(this.id, 10);
       } else if (this.tbl) {
         this.refType = 'collection';
       } else {
@@ -59,32 +61,54 @@
           this.socket.on(this.tbl + ":child_changed", filtered_cb);
           this.bare_cbs[cb] = filtered_cb;
           this.socket.emit("GET:" + this.tbl, {
-            q: "{\"_id\": " + this.id + " }"
+            _id: this.id
           }, function(it){
-            return typeof cb === 'function' ? cb(it.entries[0]) : void 8;
+            return typeof cb === 'function' ? cb(it) : void 8;
           });
           this.socket.emit("SUBSCRIBE:" + this.tbl + ":child_changed", function(){
             return typeof subscribeCompleteCb === 'function' ? subscribeCompleteCb() : void 8;
           });
           break;
         case 'child_added':
-          if (typeof subscribeCompleteCb === 'function') {
-            subscribeCompleteCb();
-          }
-          break;
+          throw Error('unimplemented');
         case 'child_changed':
-          if (typeof subscribeCompleteCb === 'function') {
-            subscribeCompleteCb();
-          }
-          break;
+          throw Error('unimplemented');
         case 'child_removed':
-          if (typeof subscribeCompleteCb === 'function') {
-            subscribeCompleteCb();
-          }
+          throw Error('unimplemented');
+        }
+        break;
+      case 'column':
+        switch (event) {
+        case 'value':
+          this.bare_cbs == null && (this.bare_cbs = {});
+          filtered_cb = function(it){
+            if (it._id === this.id) {
+              return cb(it[this.col]);
+            }
+          };
+          this.socket.on(this.tbl + ":child_changed", filtered_cb);
+          this.bare_cbs[cb] = filtered_cb;
+          this.socket.emit("GET:" + this.tbl, {
+            _id: this.id,
+            _column: this.col
+          }, function(it){
+            return typeof cb === 'function' ? cb(it) : void 8;
+          });
+          this.socket.emit("SUBSCRIBE:" + this.tbl + ":child_changed", function(){
+            return typeof subscribeCompleteCb === 'function' ? subscribeCompleteCb() : void 8;
+          });
+          break;
+        case 'child_added':
+          throw Error('unimplemented');
+        case 'child_changed':
+          throw Error('unimplemented');
+        case 'child_removed':
+          throw Error('unimplemented');
         }
       }
     };
     prototype.set = function(value, cb){
+      var ref$;
       switch (this.refType) {
       case 'collection':
         return this.socket.emit("PUT:" + this.tbl, {
@@ -95,6 +119,14 @@
       case 'entry':
         return this.socket.emit("PUT:" + this.tbl, {
           body: value,
+          u: true
+        }, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      case 'column':
+        return this.socket.emit("PUT:" + this.tbl, {
+          _id: this.id,
+          body: (ref$ = {}, ref$[this.col + ""] = value, ref$),
           u: true
         }, function(it){
           return typeof cb === 'function' ? cb(it) : void 8;
@@ -110,13 +142,15 @@
           return typeof cb === 'function' ? cb(it) : void 8;
         });
       case 'entry':
-        throw new Error("not implemented");
+        throw Error('unimplemented');
+      case 'column':
+        throw Error('unimplemented');
       }
     };
     prototype.update = function(value, cb){
       switch (this.refType) {
       case 'collection':
-        throw new Error("not implemented");
+        throw Error('unimplemented');
       case 'entry':
         return this.socket.emit("PUT:" + this.tbl, {
           body: value,
@@ -124,9 +158,12 @@
         }, function(it){
           return typeof cb === 'function' ? cb(it) : void 8;
         });
+      case 'column':
+        throw Error('unimplemented');
       }
     };
     prototype.remove = function(cb){
+      var ref$;
       switch (this.refType) {
       case 'collection':
         return this.socket.emit("DELETE:" + this.tbl, function(it){
@@ -135,6 +172,14 @@
       case 'entry':
         return this.socket.emit("DELETE:" + this.tbl, {
           _id: this.id
+        }, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      case 'column':
+        return this.socket.emit("PUT:" + this.tbl, {
+          _id: this.id,
+          body: (ref$ = {}, ref$[this.col + ""] = null, ref$),
+          u: true
         }, function(it){
           return typeof cb === 'function' ? cb(it) : void 8;
         });
@@ -165,7 +210,22 @@
           } else {
             return this.socket.removeAllListeners(this.tbl + ":child_changed");
           }
-        } else {}
+        } else {
+          throw Error('unimplemented');
+        }
+        break;
+      case 'column':
+        if (event === 'value') {
+          if (cb) {
+            if (this.bare_cbs[cb]) {
+              return this.socket.removeListener(this.tbl + ":child_changed", this.bare_cbs[cb]);
+            }
+          } else {
+            return this.socket.removeAllListeners(this.tbl + ":child_changed");
+          }
+        } else {
+          throw Error('unimplemented');
+        }
       }
     };
     prototype.once = function(event, cb, subscribeCompleteCb){
@@ -185,6 +245,12 @@
           }
         };
         return this.on(event, once_cb, subscribeCompleteCb);
+      case 'column':
+        once_cb = function(it){
+          cb(it);
+          return this$.off(event, once_cb);
+        };
+        return this.on(event, once_cb, subscribeCompleteCb);
       }
     };
     prototype.toString = function(){
@@ -199,6 +265,8 @@
         return this.tbl;
       case 'entry':
         return this.id;
+      case 'column':
+        return this.col;
       }
     };
     prototype.parent = function(){
@@ -207,12 +275,18 @@
         return this.root();
       case 'entry':
         return this.root() + "/" + this.tbl;
+      case 'column':
+        return this.root() + "/" + this.tbl + "/" + this.id;
       }
     };
     prototype.child = function(it){
       switch (this.refType) {
       case 'collection':
         return new Ref(this.toString() + "/" + it);
+      case 'entry':
+        return new Ref(this.toString() + "/" + it);
+      case 'column':
+        throw Error('unimplemented');
       }
     };
     return Ref;

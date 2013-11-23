@@ -1,4 +1,5 @@
 should = (require \chai).should!
+assert = (require \chai).assert
 {mk-pgrest-fortest} = require \./testlib
 pgclient = require "../client/client" .Ref
 
@@ -8,7 +9,7 @@ pgrest = require \..
 socket-url = 'http://localhost:8080'
 
 var _plx, plx, app, client
-describe 'Websocket Client on Entry' ->
+describe 'Websocket Client on Column' ->
   this.timeout 10000ms
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
@@ -41,7 +42,7 @@ describe 'Websocket Client on Entry' ->
 
     cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
     cols <- mount-socket plx, null, io
-    client := new pgclient("#socket-url/foo/1")
+    client := new pgclient("#socket-url/foo/1/bar")
 
     done!
   afterEach (done) ->
@@ -51,33 +52,36 @@ describe 'Websocket Client on Entry' ->
     """
     client.socket.disconnect!
     done!
-  describe 'Ref is on a entry', ->
+  describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
       .. 'should have correct ref type', (done) ->
-        client.refType.should.eq \entry
+        client.refType.should.eq \column
         done!
     describe "Reading values", -> ``it``
-      .. 'should be able to get the entry via \'value\' event', (done) ->
+      .. 'should be able to get specified column via \'value\' event', (done) ->
         client.on \value ->
-          it.should.deep.eq { _id: 1, bar: \test }
+          it.should.eq "test"
           done!
     describe "Setting values", -> ``it``
-      .. '.set should replace the entry', (done) ->
-        client.set { _id: 1, bar: "replaced" }
+      .. '.set should replace the column', (done) ->
+        client.set "replaced"
         client.on \value, ->
-          it.should.deep.eq { _id: 1, bar: \replaced }
+          it.should.eq \replaced
           done!
     describe "Updating value", -> ``it``
-      .. '.update should replace the entry', (done) ->
-        client.update { _id: 1, bar: \replaced }
+      .. '.update should replace the column', (done) ->
+        client.set "replaced"
         client.on \value, ->
-          it.should.deep.eq { _id: 1, bar: \replaced }
+          it.should.eq \replaced
           done!
     describe "Removing values", -> ``it``
-      .. '.remove should clear the entry', (done) ->
+      .. '.remove should set the column to undefined', (done) ->
+        client.remove!
+        client.on \value, ->
+          assert.isNull it
+          done!
+      .. '.remove can provide a callback to know when completed', (done) ->
         <- client.remove
-        col <- plx.query "SELECT * FROM foo WHERE _id=1;"
-        col.length.should.eq 0
         done!
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
@@ -108,7 +112,7 @@ describe 'Websocket Client on Entry' ->
         done!
     describe "toString", -> ``it``
       .. ".toString should return absolute url", (done) ->
-        client.toString!should.eq "http://localhost:8080/foo/1"
+        client.toString!should.eq "http://localhost:8080/foo/1/bar"
         done!
     describe "root", -> ``it``
       .. ".root should return host url", (done) ->
@@ -116,14 +120,10 @@ describe 'Websocket Client on Entry' ->
         done!
     describe "name", -> ``it``
       .. ".name should return table name", (done) ->
-        client.name!.should.eq 1
+        client.name!.should.eq \bar
         done!
     describe "parent", -> ``it``
-      .. ".parent should return collection", (done) ->
-        client.parent!should.eq "http://localhost:8080/foo"
-        done!
-    describe "child", -> ``it``
-      .. ".child should return column", (done) ->
-        client.child("bar").refType.should.eq \column
+      .. ".parent should return host", (done) ->
+        client.parent!should.eq "http://localhost:8080/foo/1"
         done!
 
