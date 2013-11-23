@@ -22,8 +22,7 @@ class Ref
       throw it
 
   on: (event, cb, subscribe-complete-cb) !->
-    @socket.on "#{@tbl}:#event", ->
-      cb it
+    @socket.on "#{@tbl}:#event", cb
 
     if event == \value
       # get current data from server and return it immediately
@@ -40,7 +39,30 @@ class Ref
   remove: (value, cb) ->
     @socket.emit "DELETE:#{@tbl}", -> cb? it
 
-  off: (event) ->
-    @socket.removeAllListeners event
+  off: (event, cb) ->
+    if cb
+      for l in @socket.listeners "#{@tbl}:#event"
+        if l == cb
+          @socket.removeListener "#{@tbl}:#event", l
+    else
+      @socket.removeAllListeners "#{@tbl}:#event"
+
+  once: (event, cb, subscribe-complete-cb) ->
+    once_cb = ~>
+      cb it
+      @off(event, once_cb)
+    @on(event, once_cb, subscribe-complete-cb)
+
+  toString: ->
+    "http://#{@host}#{@pathname}"
+
+  root: ->
+    "http://#{@host}"
+
+  name: ->
+    @tbl
+
+  parent: ->
+    return @root!
 
 exports.Ref = Ref

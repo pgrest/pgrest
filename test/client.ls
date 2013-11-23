@@ -52,16 +52,16 @@ describe 'Websocket Client' ->
     client.socket.disconnect!
     done!
   describe 'Ref is on a collection', ->
-    describe "Reference", -> ``it``
+    describe.skip "Reference", -> ``it``
       .. 'should have correct ref type', (done) ->
         client.refType.should.eq \collection
         done!
-    describe "Reading values", -> ``it``
+    describe.skip "Reading values", -> ``it``
       .. 'should be able to get all entries via \'value\' event', (done) ->
         client.on \value ->
           it.length.should.eq 2
           done!
-    describe "Setting values", -> ``it``
+    describe.skip "Setting values", -> ``it``
       .. '.set should replace the whole collection', (done) ->
         client.set { _id: 1, bar: "replaced" }
         client.on \value, ->
@@ -83,7 +83,7 @@ describe 'Websocket Client' ->
           if it._id == 1
             done!
         client.set { _id: 1, bar: "replaced" }
-    describe "Pushing values", -> ``it``
+    describe.skip "Pushing values", -> ``it``
       .. '.push should add new entry to collection', (done) ->
         client.push { _id: 3, bar: \insert }
         client.on \value, ->
@@ -93,7 +93,7 @@ describe 'Websocket Client' ->
         <- client.on \child_added, ->
           done!
         client.push { _id: 3, bar: \inesrt }
-    describe "Removing values", -> ``it``
+    describe.skip "Removing values", -> ``it``
       .. '.remove should clear the collection', (done) ->
         client.remove!
         client.on \value, ->
@@ -105,4 +105,48 @@ describe 'Websocket Client' ->
           if it._id == 1
             done!
         client.remove!
-
+    describe.skip "Removing listener", -> ``it``
+      .. '.off should remove all listener on a specify event', (done) ->
+        <- client.on \child_removed, ->
+          # an empty callback
+        client.socket.listeners(\foo:child_removed).length.should.eq 1
+        client.off \child_removed
+        client.socket.listeners(\foo:child_removed).length.should.eq 0
+        done!
+      .. '.off can remove specified listener on a event', (done) ->
+        cb1 = ->
+          #empty callback
+        cb2 = ->
+          #empty callback2
+        <- client.on \child_removed, cb1
+        <- client.on \child_removed, cb2
+        client.socket.listeners(\foo:child_removed).length.should.eq 2
+        client.off \child_removed, cb1
+        client.socket.listeners(\foo:child_removed).length.should.eq 1
+        done!
+    describe "Once callback", -> ``it``
+      .. '.once callback should only fire once', (done) ->
+        <- client.once \child_added, ->
+          # should fire only once
+        client.socket.listeners(\foo:child_added).length.should.eq 1
+        <- client.push { _id:3, bar: \inserted }
+        # wait once callback finish
+        <- setTimeout _, 100ms
+        client.socket.listeners(\foo:child_added).length.should.eq 0
+        done!
+    describe "toString", -> ``it``
+      .. ".toString should return absolute url", (done) ->
+        client.toString!should.eq "http://localhost:8080/foo"
+        done!
+    describe "root", -> ``it``
+      .. ".root should return host url", (done) ->
+        client.root!should.eq "http://localhost:8080"
+        done!
+    describe "name", -> ``it``
+      .. ".name should return table name", (done) ->
+        client.name!.should.eq \foo
+        done!
+    describe "parent", -> ``it``
+      .. ".parent should return host", (done) ->
+        client.parent!should.eq "http://localhost:8080"
+        done!

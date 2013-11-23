@@ -31,9 +31,7 @@
     }
     prototype.on = function(event, cb, subscribeCompleteCb){
       var this$ = this;
-      this.socket.on(this.tbl + ":" + event, function(it){
-        return cb(it);
-      });
+      this.socket.on(this.tbl + ":" + event, cb);
       if (event === 'value') {
         this.socket.emit("GETALL:" + this.tbl, function(it){
           return typeof cb === 'function' ? cb(it) : void 8;
@@ -62,8 +60,39 @@
         return typeof cb === 'function' ? cb(it) : void 8;
       });
     };
-    prototype.off = function(event){
-      return this.socket.removeAllListeners(event);
+    prototype.off = function(event, cb){
+      var i$, ref$, len$, l, results$ = [];
+      if (cb) {
+        for (i$ = 0, len$ = (ref$ = this.socket.listeners(this.tbl + ":" + event)).length; i$ < len$; ++i$) {
+          l = ref$[i$];
+          if (l === cb) {
+            results$.push(this.socket.removeListener(this.tbl + ":" + event, l));
+          }
+        }
+        return results$;
+      } else {
+        return this.socket.removeAllListeners(this.tbl + ":" + event);
+      }
+    };
+    prototype.once = function(event, cb, subscribeCompleteCb){
+      var once_cb, this$ = this;
+      once_cb = function(it){
+        cb(it);
+        return this$.off(event, once_cb);
+      };
+      return this.on(event, once_cb, subscribeCompleteCb);
+    };
+    prototype.toString = function(){
+      return "http://" + this.host + this.pathname;
+    };
+    prototype.root = function(){
+      return "http://" + this.host;
+    };
+    prototype.name = function(){
+      return this.tbl;
+    };
+    prototype.parent = function(){
+      return this.root();
     };
     return Ref;
   }());
