@@ -1,5 +1,4 @@
 should = (require \chai).should!
-assert = (require \chai).assert
 {mk-pgrest-fortest} = require \./testlib
 pgclient = require "../client/client" .Ref
 
@@ -9,7 +8,7 @@ pgrest = require \..
 socket-url = 'http://localhost:8080'
 
 var _plx, plx, app, client
-describe 'Websocket Client on Entry' ->
+describe 'Websocket Client on Collection' ->
   this.timeout 10000ms
   beforeEach (done) ->
     _plx <- mk-pgrest-fortest!
@@ -42,7 +41,7 @@ describe 'Websocket Client on Entry' ->
 
     cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
     cols <- mount-socket plx, null, io
-    client := new pgclient("#socket-url/foo/1")
+    client := new pgclient("#socket-url/foo")
 
     done!
   afterEach (done) ->
@@ -52,64 +51,95 @@ describe 'Websocket Client on Entry' ->
     """
     client.socket.disconnect!
     done!
-  describe 'Ref is on a entry', ->
+  describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
       .. 'should have correct ref type', (done) ->
-        client.refType.should.eq \entry
+        client.refType.should.eq \collection
         done!
     describe "Reading values", -> ``it``
-      .. 'should be able to get the entry via \'value\' event', (done) ->
+      .. 'should be able to get all entries via \'value\' event', (done) ->
         client.on \value ->
-          it.should.deep.eq { _id: 1, bar: \test }
+          it.length.should.eq 2
           done!
     describe "Setting values", -> ``it``
-      .. '.set should replace the entry', (done) ->
+      .. '.set should replace the whole collection', (done) ->
         client.set { _id: 1, bar: "replaced" }
         client.on \value, ->
-          it.should.deep.eq { _id: 1, bar: \replaced }
+          it.length.should.eq 1
           done!
-    describe "Updating value", -> ``it``
-      .. '.update should replace the entry', (done) ->
-        client.update { _id: 1, bar: \replaced }
+      .. '.set should be able to replace the collection with multiple entries', (done) ->
+        client.set [{ _id: 1, bar: "replaced" }, { _id: 2, bar: "replaced" }]
         client.on \value, ->
+          it.length.should.eq 2
+          done!
+      .. '.set should trigger child_added event', (done) ->
+        <- client.on \child_added ->
           it.should.deep.eq { _id: 1, bar: \replaced }
           done!
+        client.set { _id: 1, bar: "replaced" }
+      .. '.set should trigger child_removed event', (done) ->
+        <- client.on \child_removed, ->
+          # _id = 2 will trigger this too
+          if it._id == 1
+            done!
+        client.set { _id: 1, bar: "replaced" }
+    describe "Pushing values", -> ``it``
+      .. '.push should add new entry to collection', (done) ->
+        client.push { _id: 3, bar: \insert }
+        client.on \value, ->
+          it.length.should.eq 3
+          done!
+      .. '.push should trigger child_added event', (done) ->
+        <- client.on \child_added, ->
+          done!
+        client.push { _id: 3, bar: \inesrt }
     describe "Removing values", -> ``it``
-      .. '.remove should clear the entry', (done) ->
+      .. '.remove should clear the collection', (done) ->
         client.remove!
         client.on \value, ->
-          assert.isUndefined it, 'trigger return undefined'
+          it.length.should.eq 0
           done!
+      .. '.remove can provide a callback to know when completed', (done) ->
+        <- client.remove
+        done!
+      .. '.remove should trigger child_removed event', (done) ->
+        <- client.on \child_removed, ->
+          # _id = 2 will trigger this too
+          if it._id == 1
+            done!
+        client.remove!
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
-        <- client.on \value, ->
+        <- client.on \child_removed, ->
           # an empty callback
-        client.socket.listeners(\foo:child_changed).length.should.eq 1
-        client.off \value
-        client.socket.listeners(\foo:child_changed).length.should.eq 0
+        client.socket.listeners(\foo:child_removed).length.should.eq 1
+        client.off \child_removed
+        client.socket.listeners(\foo:child_removed).length.should.eq 0
         done!
       .. '.off can remove specified listener on a event', (done) ->
         cb1 = ->
           #empty callback
         cb2 = ->
           #empty callback2
-        <- client.on \value, cb1
-        <- client.on \value, cb2
-        client.socket.listeners(\foo:child_changed).length.should.eq 2
-        client.off \value, cb1
-        client.socket.listeners(\foo:child_changed).length.should.eq 1
+        <- client.on \child_removed, cb1
+        <- client.on \child_removed, cb2
+        client.socket.listeners(\foo:child_removed).length.should.eq 2
+        client.off \child_removed, cb1
+        client.socket.listeners(\foo:child_removed).length.should.eq 1
         done!
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
-        <- client.once \value, ->
+        <- client.once \child_added, ->
           # should fire only once
+        client.socket.listeners(\foo:child_added).length.should.eq 1
+        <- client.push { _id:3, bar: \inserted }
         # wait once callback finish
         <- setTimeout _, 100ms
         client.socket.listeners(\foo:child_added).length.should.eq 0
         done!
     describe "toString", -> ``it``
       .. ".toString should return absolute url", (done) ->
-        client.toString!should.eq "http://localhost:8080/foo/1"
+        client.toString!should.eq "http://localhost:8080/foo"
         done!
     describe "root", -> ``it``
       .. ".root should return host url", (done) ->
@@ -117,10 +147,13 @@ describe 'Websocket Client on Entry' ->
         done!
     describe "name", -> ``it``
       .. ".name should return table name", (done) ->
-        client.name!.should.eq \1
+        client.name!.should.eq \foo
         done!
     describe "parent", -> ``it``
       .. ".parent should return host", (done) ->
-        client.parent!should.eq "http://localhost:8080/foo"
+        client.parent!should.eq "http://localhost:8080"
         done!
-
+    describe "child", -> ``it``
+      .. ".child should return a ref point to entry", (done) ->
+        client.child(1).refType.should.eq \entry
+        done!

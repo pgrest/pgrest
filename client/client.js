@@ -22,7 +22,11 @@
       }
       this.socket = ioClient.connect("http://" + this.host, {
         transports: ['websocket'],
-        'force new connection': true
+        'force new connection': true,
+        'connect timeout': 999999999,
+        'reconnect': true,
+        'reconnection delay': 500,
+        'reopen delay': 500
       });
       this.socket.on('error', function(it){
         console.log('error', it);
@@ -30,57 +34,158 @@
       });
     }
     prototype.on = function(event, cb, subscribeCompleteCb){
-      var this$ = this;
-      this.socket.on(this.tbl + ":" + event, cb);
-      if (event === 'value') {
-        this.socket.emit("GETALL:" + this.tbl, function(it){
+      var filtered_cb;
+      switch (this.refType) {
+      case 'collection':
+        this.socket.on(this.tbl + ":" + event, cb);
+        if (event === 'value') {
+          this.socket.emit("GETALL:" + this.tbl, function(it){
+            return typeof cb === 'function' ? cb(it) : void 8;
+          });
+        }
+        this.socket.emit("SUBSCRIBE:" + this.tbl + ":" + event, function(){
+          return typeof subscribeCompleteCb === 'function' ? subscribeCompleteCb() : void 8;
+        });
+        break;
+      case 'entry':
+        switch (event) {
+        case 'value':
+          this.bare_cbs == null && (this.bare_cbs = {});
+          filtered_cb = function(it){
+            if (it._id === this.id) {
+              return cb(it);
+            }
+          };
+          this.socket.on(this.tbl + ":child_changed", filtered_cb);
+          this.bare_cbs[cb] = filtered_cb;
+          this.socket.emit("GET:" + this.tbl, {
+            q: "{\"_id\": " + this.id + " }"
+          }, function(it){
+            return typeof cb === 'function' ? cb(it.entries[0]) : void 8;
+          });
+          this.socket.emit("SUBSCRIBE:" + this.tbl + ":child_changed", function(){
+            return typeof subscribeCompleteCb === 'function' ? subscribeCompleteCb() : void 8;
+          });
+          break;
+        case 'child_added':
+          if (typeof subscribeCompleteCb === 'function') {
+            subscribeCompleteCb();
+          }
+          break;
+        case 'child_changed':
+          if (typeof subscribeCompleteCb === 'function') {
+            subscribeCompleteCb();
+          }
+          break;
+        case 'child_removed':
+          if (typeof subscribeCompleteCb === 'function') {
+            subscribeCompleteCb();
+          }
+        }
+      }
+    };
+    prototype.set = function(value, cb){
+      switch (this.refType) {
+      case 'collection':
+        return this.socket.emit("PUT:" + this.tbl, {
+          body: value
+        }, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      case 'entry':
+        return this.socket.emit("PUT:" + this.tbl, {
+          body: value,
+          u: true
+        }, function(it){
           return typeof cb === 'function' ? cb(it) : void 8;
         });
       }
-      this.socket.emit("SUBSCRIBE:" + this.tbl + ":" + event, function(){
-        return typeof subscribeCompleteCb === 'function' ? subscribeCompleteCb() : void 8;
-      });
-    };
-    prototype.set = function(value, cb){
-      return this.socket.emit("PUT:" + this.tbl, {
-        body: value
-      }, function(it){
-        return typeof cb === 'function' ? cb(it) : void 8;
-      });
     };
     prototype.push = function(value, cb){
-      return this.socket.emit("POST:" + this.tbl, {
-        body: value
-      }, function(it){
-        return typeof cb === 'function' ? cb(it) : void 8;
-      });
+      switch (this.refType) {
+      case 'collection':
+        return this.socket.emit("POST:" + this.tbl, {
+          body: value
+        }, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      case 'entry':
+        throw new Error("not implemented");
+      }
     };
-    prototype.remove = function(value, cb){
-      return this.socket.emit("DELETE:" + this.tbl, function(it){
-        return typeof cb === 'function' ? cb(it) : void 8;
-      });
+    prototype.update = function(value, cb){
+      switch (this.refType) {
+      case 'collection':
+        throw new Error("not implemented");
+      case 'entry':
+        return this.socket.emit("PUT:" + this.tbl, {
+          body: value,
+          u: true
+        }, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      }
+    };
+    prototype.remove = function(cb){
+      switch (this.refType) {
+      case 'collection':
+        return this.socket.emit("DELETE:" + this.tbl, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      case 'entry':
+        return this.socket.emit("DELETE:" + this.tbl, {
+          _id: this.id
+        }, function(it){
+          return typeof cb === 'function' ? cb(it) : void 8;
+        });
+      }
     };
     prototype.off = function(event, cb){
       var i$, ref$, len$, l, results$ = [];
-      if (cb) {
-        for (i$ = 0, len$ = (ref$ = this.socket.listeners(this.tbl + ":" + event)).length; i$ < len$; ++i$) {
-          l = ref$[i$];
-          if (l === cb) {
-            results$.push(this.socket.removeListener(this.tbl + ":" + event, l));
+      switch (this.refType) {
+      case 'collection':
+        if (cb) {
+          for (i$ = 0, len$ = (ref$ = this.socket.listeners(this.tbl + ":" + event)).length; i$ < len$; ++i$) {
+            l = ref$[i$];
+            if (l === cb) {
+              results$.push(this.socket.removeListener(this.tbl + ":" + event, l));
+            }
           }
+          return results$;
+        } else {
+          return this.socket.removeAllListeners(this.tbl + ":" + event);
         }
-        return results$;
-      } else {
-        return this.socket.removeAllListeners(this.tbl + ":" + event);
+        break;
+      case 'entry':
+        if (event === 'value') {
+          if (cb) {
+            if (this.bare_cbs[cb]) {
+              return this.socket.removeListener(this.tbl + ":child_changed", this.bare_cbs[cb]);
+            }
+          } else {
+            return this.socket.removeAllListeners(this.tbl + ":child_changed");
+          }
+        } else {}
       }
     };
     prototype.once = function(event, cb, subscribeCompleteCb){
       var once_cb, this$ = this;
-      once_cb = function(it){
-        cb(it);
-        return this$.off(event, once_cb);
-      };
-      return this.on(event, once_cb, subscribeCompleteCb);
+      switch (this.refType) {
+      case 'collection':
+        once_cb = function(it){
+          cb(it);
+          return this$.off(event, once_cb);
+        };
+        return this.on(event, once_cb, subscribeCompleteCb);
+      case 'entry':
+        once_cb = function(it){
+          if (it._id === this$.id) {
+            cb(it);
+            return this$.off(event, once_cb);
+          }
+        };
+        return this.on(event, once_cb, subscribeCompleteCb);
+      }
     };
     prototype.toString = function(){
       return "http://" + this.host + this.pathname;
@@ -89,10 +194,26 @@
       return "http://" + this.host;
     };
     prototype.name = function(){
-      return this.tbl;
+      switch (this.refType) {
+      case 'collection':
+        return this.tbl;
+      case 'entry':
+        return this.id;
+      }
     };
     prototype.parent = function(){
-      return this.root();
+      switch (this.refType) {
+      case 'collection':
+        return this.root();
+      case 'entry':
+        return this.root() + "/" + this.tbl;
+      }
+    };
+    prototype.child = function(it){
+      switch (this.refType) {
+      case 'collection':
+        return new Ref(this.toString() + "/" + it);
+      }
     };
     return Ref;
   }());

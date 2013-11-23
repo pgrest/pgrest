@@ -173,5 +173,3 @@ describe 'Socket' ->
         <- socket.emit "SUBSCRIBE:foo:value"
         <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
 
-
-
