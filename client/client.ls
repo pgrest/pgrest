@@ -29,16 +29,21 @@ class Ref
       console.log \error, it
       throw it
 
-  on: (event, cb, subscribe-complete-cb) !->
+  on: (event, cb) !->
     switch @refType
     case \collection
       @socket.on "#{@tbl}:#event", cb
 
       if event == \value
         # get current data from server and return it immediately
-        @socket.emit "GETALL:#{@tbl}", -> cb? it
-      <- @socket.emit "SUBSCRIBE:#{@tbl}:#event"
-      subscribe-complete-cb?!
+        <~ @socket.emit "SUBSCRIBE:#{@tbl}:#event"
+        console.log "SUBSCRIBE:#{@tbl}:#event compeleted"
+        <~ @socket.emit "GETALL:#{@tbl}"
+        console.log "GET:#{@tbl} completed"
+        cb? it
+      else
+        <~ @socket.emit "SUBSCRIBE:#{@tbl}:#event"
+        console.log "SUBSCRIBE:#{@tbl}:#event compeleted"
     case \entry
       switch event
       case \value
@@ -49,9 +54,11 @@ class Ref
         @socket.on "#{@tbl}:child_changed", filtered_cb
         @bare_cbs[cb] = filtered_cb
 
-        @socket.emit "GET:#{@tbl}", { _id: @id }, -> cb? it
-        <- @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
-        subscribe-complete-cb?!
+        <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
+        console.log "SUBSCRIBE:#{@tbl}:child_changed completed"
+        <~ @socket.emit "GET:#{@tbl}", { _id: @id }
+        console.log "GET:#{@tbl} completed"
+        cb? it
       case \child_added
         ...
       case \child_changed
@@ -68,9 +75,11 @@ class Ref
         @socket.on "#{@tbl}:child_changed", filtered_cb
         @bare_cbs[cb] = filtered_cb
 
-        @socket.emit "GET:#{@tbl}", { _id: @id, _column: @col }, -> cb? it
-        <- @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
-        subscribe-complete-cb?!
+        <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
+        console.log "SUBSCRIBE:#{@tbl}:child_changed completed"
+        <~ @socket.emit "GET:#{@tbl}", { _id: @id, _column: @col }
+        console.log "GET:#{@tbl} completed"
+        cb? it
       case \child_added
         ...
       case \child_changed
@@ -142,24 +151,24 @@ class Ref
       else
         ...
 
-  once: (event, cb, subscribe-complete-cb) ->
+  once: (event, cb) ->
     switch @refType
     case \collection
       once_cb = ~>
-        cb it
         @off(event, once_cb)
-      @on(event, once_cb, subscribe-complete-cb)
+        cb it
+      @on(event, once_cb)
     case \entry
       once_cb = ~>
         if it._id == @id
-          cb it
           @off(event, once_cb)
-      @on(event, once_cb, subscribe-complete-cb)
+          cb it
+      @on(event, once_cb)
     case \column
       once_cb = ~>
-          cb it
           @off(event, once_cb)
-      @on(event, once_cb, subscribe-complete-cb)
+          cb it
+      @on(event, once_cb)
 
   toString: ->
     "http://#{@host}#{@pathname}"

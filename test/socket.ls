@@ -7,7 +7,7 @@ pgrest = require \..
 
 socket-url = 'http://localhost:8080'
 
-var _plx, plx, app, socket
+var _plx, plx, app, socket, server
 describe 'Socket' ->
   this.timeout 10000ms
   beforeEach (done) ->
@@ -29,29 +29,29 @@ describe 'Socket' ->
     INSERT INTO bar (_id, info) values(1, 't1');
     INSERT INTO bar (_id, info) values(2, 't2');
     """
-
-    socket := io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
-    socket.on \error ->
-      throw it
     
     {mount-default,with-prefix} = pgrest.routes!
     {mount-socket} = pgrest.socket!
     app := express!
     app.use express.cookieParser!
     app.use express.json!
-    server = require \http .createServer app
+    server := require \http .createServer app
     io = require \socket.io .listen server, { log: false}
     server.listen 8080
 
-    cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
     cols <- mount-socket plx, null, io
+#TODO: 與client reconnect無關
+    socket := io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
+    socket.on \error ->
+      throw it
     done!
   afterEach (done) ->
-    <- plx.query """
+    e, r <- plx.query """
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
     socket.disconnect!
+    server.close!
     done!
   describe 'with public schema' ->
     describe 'GETALL:#table', -> ``it``
@@ -135,9 +135,17 @@ describe 'Socket' ->
       .. 'should create trigger and return OK', (done) ->
         <- socket.emit "SUBSCRIBE:foo:value"
         done!
+      .. 'should ...', (done) ->
+        socket.on 'foo:value' ->
+          console.log \ok
+          it.length.should.eq 3
+          done!
+        <- socket.emit "SUBSCRIBE:foo:value"
+        <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
     describe 'SUBSCRIBE:#table:child_added', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:child_added' ->
+          console.log \ok
           it.should.deep.eq { _id: 3, bar: 'new'}
           done!
         <- socket.emit "SUBSCRIBE:foo:child_added"

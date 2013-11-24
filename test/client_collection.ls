@@ -7,7 +7,7 @@ pgrest = require \..
 
 socket-url = 'http://localhost:8080'
 
-var _plx, plx, app, client
+var _plx, plx, app, client, server
 describe 'Websocket Client on Collection' ->
   this.timeout 10000ms
   beforeEach (done) ->
@@ -35,21 +35,23 @@ describe 'Websocket Client on Collection' ->
     app := express!
     app.use express.cookieParser!
     app.use express.json!
-    server = require \http .createServer app
+    server := require \http .createServer app
     io = require \socket.io .listen server, { log: false}
     server.listen 8080
 
-    cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
     cols <- mount-socket plx, null, io
     client := new pgclient("#socket-url/foo")
 
     done!
   afterEach (done) ->
+    console.log \init-after
     <- plx.query """
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
     client.socket.disconnect!
+    server.close!
+    console.log \done-after
     done!
   describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
@@ -63,64 +65,68 @@ describe 'Websocket Client on Collection' ->
           done!
     describe "Events", -> ``it``
       .. 'should trigger \'value\' when pushed', (done) ->
-        <- client.on \value ->
+        client.once \value ->
           if it.length == 3
             done!
         client.push { _id: 3, bar: \insert }
     describe "Setting values", -> ``it``
       .. '.set should replace the whole collection', (done) ->
-        client.set { _id: 1, bar: "replaced" }
+        <- client.set { _id: 1, bar: "replaced" }
         client.on \value, ->
           it.length.should.eq 1
           done!
       .. '.set should be able to replace the collection with multiple entries', (done) ->
-        client.set [{ _id: 1, bar: "replaced" }, { _id: 2, bar: "replaced" }]
+        <- client.set [{ _id: 1, bar: "replaced" }, { _id: 2, bar: "replaced" }]
         client.on \value, ->
           it.length.should.eq 2
           done!
       .. '.set should trigger child_added event', (done) ->
-        <- client.on \child_added ->
+        client.on \child_added ->
           it.should.deep.eq { _id: 1, bar: \replaced }
           done!
         client.set { _id: 1, bar: "replaced" }
       .. '.set should trigger child_removed event', (done) ->
-        <- client.on \child_removed, ->
+        client.on \child_removed, ->
           # _id = 2 will trigger this too
           if it._id == 1
             done!
         client.set { _id: 1, bar: "replaced" }
     describe "Pushing values", -> ``it``
       .. '.push should add new entry to collection', (done) ->
-        client.push { _id: 3, bar: \insert }
+        <- client.push { _id: 3, bar: \insert }
         client.on \value, ->
           it.length.should.eq 3
           done!
       .. '.push should trigger child_added event', (done) ->
-        <- client.on \child_added, ->
+        client.on \child_added, ->
           done!
         client.push { _id: 3, bar: \inesrt }
       .. '.push should trigger value event', (done) ->
-        <- client.on \value, ->
+        client.once \value, ->
           if it.length == 3
             done!
         client.push { _id:3, bar: \insert }
     describe "Removing values", -> ``it``
       .. '.remove should clear the collection', (done) ->
         <- client.remove!
-        client.on \value, ->
+        <- client.on \value, ->
           it.length.should.eq 0
           done!
       .. '.remove should work if collection has value trigger on it', (done) ->
-        <- client.on \value, ->
+        value_trigger = ->
+          #TODO: this will be triggered multiple times
+          # because setting a collection from 2 row to 1 row will trigger 2 child_remove and 1 child_added
           if it.length == 0
+            client.off \value, value_trigger
             done!
+        client.on \value, value_trigger
         client.remove!
       .. '.remove should work if collection has child_added trigger on it', (done) ->
-        <- client.on \child_added, ->
+        client.on \child_added, ->
         client.remove!
         done!
       .. '.remove should work if collection has child_removed trigger on it', (done) ->
-        <- client.on \child_removed, ->
+        client.on \child_removed, ->
           if it._id == 1
             done!
         client.remove!
@@ -128,14 +134,14 @@ describe 'Websocket Client on Collection' ->
         <- client.remove
         done!
       .. '.remove should trigger child_removed event', (done) ->
-        <- client.on \child_removed, ->
+        client.on \child_removed, ->
           # _id = 2 will trigger this too
           if it._id == 1
             done!
         client.remove!
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
-        <- client.on \child_removed, ->
+        client.on \child_removed, ->
           # an empty callback
         client.socket.listeners(\foo:child_removed).length.should.eq 1
         client.off \child_removed
@@ -146,15 +152,15 @@ describe 'Websocket Client on Collection' ->
           #empty callback
         cb2 = ->
           #empty callback2
-        <- client.on \child_removed, cb1
-        <- client.on \child_removed, cb2
+        client.on \child_removed, cb1
+        client.on \child_removed, cb2
         client.socket.listeners(\foo:child_removed).length.should.eq 2
         client.off \child_removed, cb1
         client.socket.listeners(\foo:child_removed).length.should.eq 1
         done!
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
-        <- client.once \child_added, ->
+        client.once \child_added, ->
           # should fire only once
         client.socket.listeners(\foo:child_added).length.should.eq 1
         <- client.push { _id:3, bar: \inserted }
@@ -180,5 +186,11 @@ describe 'Websocket Client on Collection' ->
         done!
     describe "child", -> ``it``
       .. ".child should return a ref point to entry", (done) ->
-        client.child(1).refType.should.eq \entry
-        done!
+        child = client.child(1)
+        child.refType.should.eq \entry
+        child.on \value, ->
+          it.should.deep.eq { _id: 1, bar: \test }
+          console.log \close-child
+          child.socket.disconnect!
+          console.log \close-child-done
+          done!

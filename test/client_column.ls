@@ -8,7 +8,7 @@ pgrest = require \..
 
 socket-url = 'http://localhost:8080'
 
-var _plx, plx, app, client
+var _plx, plx, app, client, server
 describe 'Websocket Client on Column' ->
   this.timeout 10000ms
   beforeEach (done) ->
@@ -36,21 +36,23 @@ describe 'Websocket Client on Column' ->
     app := express!
     app.use express.cookieParser!
     app.use express.json!
-    server = require \http .createServer app
+    server := require \http .createServer app
     io = require \socket.io .listen server, { log: false}
     server.listen 8080
 
-    cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
     cols <- mount-socket plx, null, io
     client := new pgclient("#socket-url/foo/1/bar")
 
     done!
   afterEach (done) ->
+    console.log \init-after
     <- plx.query """
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
     client.socket.disconnect!
+    server.close!
+    console.log \done-after
     done!
   describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
@@ -85,7 +87,7 @@ describe 'Websocket Client on Column' ->
         done!
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
-        <- client.on \value, ->
+        client.on \value, ->
           # an empty callback
         client.socket.listeners(\foo:child_changed).length.should.eq 1
         client.off \value
@@ -96,15 +98,15 @@ describe 'Websocket Client on Column' ->
           #empty callback
         cb2 = ->
           #empty callback2
-        <- client.on \value, cb1
-        <- client.on \value, cb2
+        client.on \value, cb1
+        client.on \value, cb2
         client.socket.listeners(\foo:child_changed).length.should.eq 2
         client.off \value, cb1
         client.socket.listeners(\foo:child_changed).length.should.eq 1
         done!
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
-        <- client.once \value, ->
+        client.once \value, ->
           # should fire only once
         # wait once callback finish
         <- setTimeout _, 100ms
