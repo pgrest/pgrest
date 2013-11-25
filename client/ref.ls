@@ -13,21 +13,28 @@ class CollectionRef
       throw "#{@pathname} is not a collection"
 
     @opt = opt
-    conf =
+    @conf =
       transports: ['websocket']
       'connect timeout': 999999
       'reconnect': true
       'reconnection delay': 500
       'reopen delay': 500
     if @opt?force
-      conf['force new connection']= true
+      @conf['force new connection']= true
 
-    @socket = io-client.connect "http://#{@host}", conf
-    @socket.on \error ->
-      console.log \error, it
-      throw it
+  disconnect: ->
+    if @socket
+      @socket.disconnect!
+
+  need-connection: ->
+    unless @socket
+      @socket = io-client.connect "http://#{@host}", @conf
+      @socket.on \error ->
+        console.log \client-error, it
+        throw it
 
   on: (event, cb) ->
+    @need-connection!
     @socket.on "#{@tbl}:#event", cb
 
     if event == \value
@@ -39,18 +46,23 @@ class CollectionRef
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:#event"
 
   set: (value, cb) ->
+    @need-connection!
     @socket.emit "PUT:#{@tbl}", { body: value }, -> cb? it
 
   push: (value, cb) ->
+    @need-connection!
     @socket.emit "POST:#{@tbl}", { body: value }, -> cb? it
 
   update: (value, cb) ->
+    @need-connection!
     ...
 
   remove: (cb) ->
+    @need-connection!
     @socket.emit "DELETE:#{@tbl}", -> cb? it
 
   off: (event, cb) ->
+    @need-connection!
     if cb
       for l in @socket.listeners "#{@tbl}:#event"
         if l == cb
@@ -59,6 +71,7 @@ class CollectionRef
       @socket.removeAllListeners "#{@tbl}:#event"
 
   once: (event, cb) ->
+    @need-connection!
     once_cb = ~>
       @off(event, once_cb)
       cb it
@@ -91,21 +104,28 @@ class ColumnRef
       throw "#{@pathname} is not a column"
 
     @opt = opt
-    conf =
+    @conf =
       transports: ['websocket']
       'connect timeout': 999999
       'reconnect': true
       'reconnection delay': 500
       'reopen delay': 500
     if @opt?force
-      conf['force new connection']= true
+      @conf['force new connection']= true
 
-    @socket = io-client.connect "http://#{@host}", conf
-    @socket.on \error ->
-      console.log \error, it
-      throw it
+  disconnect: ->
+    if @socket
+      @socket.disconnect!
+
+  need-connection: ->
+    unless @socket
+      @socket = io-client.connect "http://#{@host}", @conf
+      @socket.on \error ->
+        console.log \client-error, it
+        throw it
 
   on: (event, cb) ->
+    @need-connection!
     switch event
     case \value
       @bare_cbs ?= {}
@@ -118,26 +138,27 @@ class ColumnRef
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
       <~ @socket.emit "GET:#{@tbl}", { _id: @id, _column: @col }
       cb? it
-    case \child_added
-      ...
-    case \child_changed
-      ...
-    case \child_removed
+    default
       ...
 
   set: (value, cb) ->
+    @need-connection!
     @socket.emit "PUT:#{@tbl}", { _id: @id, body: { "#{@col}": value }, u: true}, -> cb? it
 
   push: (value, cb) ->
+    @need-connection!
     ...
 
   update: (value, cb) ->
+    @need-connection!
     ...
 
   remove: (cb) ->
+    @need-connection!
     @socket.emit "PUT:#{@tbl}", { _id: @id, body: { "#{@col}": null }, u: true}, -> cb? it
 
   off: (event, cb) ->
+    @need-connection!
     if event == \value
       if cb
         if @bare_cbs[cb]
@@ -148,6 +169,7 @@ class ColumnRef
       ...
 
   once: (event, cb) ->
+    @need-connection!
     once_cb = ~>
         @off(event, once_cb)
         cb it
@@ -180,21 +202,28 @@ class EntryRef
       throw "#{@pathname} is not an entry"
 
     @opt = opt
-    conf =
+    @conf =
       transports: ['websocket']
       'connect timeout': 999999
       'reconnect': true
       'reconnection delay': 500
       'reopen delay': 500
     if @opt?force
-      conf['force new connection']= true
+      @conf['force new connection']= true
 
-    @socket = io-client.connect "http://#{@host}", conf
-    @socket.on \error ->
-      console.log \error, it
-      throw it
+  disconnect: ->
+    if @socket
+      @socket.disconnect!
+  
+  need-connection: ->
+    unless @socket
+      @socket = io-client.connect "http://#{@host}", @conf
+      @socket.on \error ->
+        console.log \client-error, it
+        throw it
 
   on: (event, cb) ->
+    @need-connection!
     switch event
     case \value
       @bare_cbs ?= {}
@@ -207,26 +236,27 @@ class EntryRef
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
       <~ @socket.emit "GET:#{@tbl}", { _id: @id }
       cb? it
-    case \child_added
-      ...
-    case \child_changed
-      ...
-    case \child_removed
+    default
       ...
 
   set: (value, cb) ->
+    @need-connection!
     @socket.emit "PUT:#{@tbl}", { body: value, u: true }, -> cb? it
 
   push: (value, cb) ->
+    @need-connection!
     ...
 
   update: (value, cb) ->
+    @need-connection!
     @socket.emit "PUT:#{@tbl}", { body: value, u: true }, -> cb? it
 
   remove: (cb) ->
+    @need-connection!
     @socket.emit "DELETE:#{@tbl}", { _id: @id }, -> cb? it
 
   off: (event, cb) ->
+    @need-connection!
     if event == \value
       if cb
         if @bare_cbs[cb]
@@ -237,6 +267,7 @@ class EntryRef
       ...
 
   once: (event, cb) ->
+    @need-connection!
     once_cb = ~>
       if it._id == @id
         @off(event, once_cb)
