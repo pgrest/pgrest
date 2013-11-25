@@ -27,7 +27,7 @@ class CollectionRef
       console.log \error, it
       throw it
 
-  on: (event, cb) !->
+  on: (event, cb) ->
     @socket.on "#{@tbl}:#event", cb
 
     if event == \value
@@ -105,7 +105,7 @@ class ColumnRef
       console.log \error, it
       throw it
 
-  on: (event, cb) !->
+  on: (event, cb) ->
     switch event
     case \value
       @bare_cbs ?= {}
@@ -194,7 +194,7 @@ class EntryRef
       console.log \error, it
       throw it
 
-  on: (event, cb) !->
+  on: (event, cb) ->
     switch event
     case \value
       @bare_cbs ?= {}
