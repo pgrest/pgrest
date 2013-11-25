@@ -7,3 +7,5 @@ bin/*.js
 lib
 config.json
 config.ls
+
+/client/ref.js
