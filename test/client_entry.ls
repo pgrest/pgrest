@@ -48,8 +48,7 @@ describe 'Websocket Client on Entry' ->
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
-    client.socket.disconnect!
-    server.close!
+    client.disconnect!
     done!
   describe 'Ref is on a entry', ->
     describe "Reference", -> ``it``
@@ -95,10 +94,7 @@ describe 'Websocket Client on Entry' ->
         client.on \value, cb
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
-        client.once \value, ->
-          # should fire only once
-        # wait once callback finish
-        <- setTimeout _, 100ms
+        <- client.once \value
         client.socket.listeners(\foo:child_changed).length.should.eq 0
         done!
     describe "toString", -> ``it``
@@ -119,7 +115,7 @@ describe 'Websocket Client on Entry' ->
         parent := client.parent!
         done!
       afterEach (done) ->
-        parent.socket.disconnect!
+        parent.disconnect!
         done!
       .. ".parent should return host", (done) ->
         parent.refType.should.eq \collection
@@ -132,7 +128,7 @@ describe 'Websocket Client on Entry' ->
         child := client.child("bar")
         done!
       afterEach (done) ->
-        child.socket.disconnect!
+        child.disconnect!
         done!
       .. ".child should return column", (done) ->
         child.refType.should.eq \column

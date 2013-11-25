@@ -40,7 +40,6 @@ describe 'Socket' ->
     server.listen 8080
 
     cols <- mount-socket plx, null, io
-#TODO: 與client reconnect無關
     socket := io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
     socket.on \error ->
       throw it
@@ -51,7 +50,7 @@ describe 'Socket' ->
     DROP TABLE IF EXISTS bar;
     """
     socket.disconnect!
-    server.close!
+    #server.close!
     done!
   describe 'with public schema' ->
     describe 'GETALL:#table', -> ``it``

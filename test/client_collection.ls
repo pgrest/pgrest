@@ -48,8 +48,7 @@ describe 'Websocket Client on Collection' ->
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
-    client.socket.disconnect!
-    server.close!
+    client.disconnect!
     done!
   describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
@@ -153,13 +152,10 @@ describe 'Websocket Client on Collection' ->
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
         client.once \child_added, ->
-          # should fire only once
+          client.socket.listeners(\foo:child_added).length.should.eq 0
+          done!
         client.socket.listeners(\foo:child_added).length.should.eq 1
-        <- client.push { _id:3, bar: \inserted }
-        # wait once callback finish
-        <- setTimeout _, 100ms
-        client.socket.listeners(\foo:child_added).length.should.eq 0
-        done!
+        client.push { _id:3, bar: \inserted }
     describe "toString", -> ``it``
       .. ".toString should return absolute url", (done) ->
         client.toString!should.eq "http://localhost:8080/foo"
@@ -178,7 +174,7 @@ describe 'Websocket Client on Collection' ->
         child := client.child(1)
         done!
       afterEach (done) ->
-        child.socket.disconnect!
+        child.disconnect!
         done!
       .. ".child should return a ref point to entry", (done) ->
         child.refType.should.eq \entry
