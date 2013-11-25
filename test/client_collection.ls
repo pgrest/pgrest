@@ -175,10 +175,6 @@ describe 'Websocket Client on Collection' ->
       .. ".name should return table name", (done) ->
         client.name!.should.eq \foo
         done!
-    describe "parent", -> ``it``
-      .. ".parent should return host", (done) ->
-        client.parent!should.eq "http://localhost:8080"
-        done!
     var child
     describe "child", -> ``it``
       beforeEach (done) ->

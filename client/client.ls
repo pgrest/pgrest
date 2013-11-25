@@ -199,13 +199,14 @@ class Ref
       @col
 
   parent: ->
+    console.log \parent, @opt
     switch @refType
     case \collection
-      @root!
+      ...
     case \entry
-      "#{@root!}/#{@tbl}"
+      new Ref("#{@root!}/#{@tbl}", @opt)
     case \column
-      "#{@root!}/#{@tbl}/#{@id}"
+      new Ref("#{@root!}/#{@tbl}/#{@id}", @opt)
 
   child: ->
     console.log \child, it, @opt

@@ -115,10 +115,23 @@ describe 'Websocket Client on Entry' ->
       .. ".name should return table name", (done) ->
         client.name!.should.eq 1
         done!
+    var parent
     describe "parent", -> ``it``
-      .. ".parent should return collection", (done) ->
-        client.parent!should.eq "http://localhost:8080/foo"
+      beforeEach (done) ->
+        parent := client.parent!
         done!
+      afterEach (done) ->
+        console.log \close-parent
+        parent.socket.disconnect!
+        console.log \close-parent-done
+        done!
+      .. ".parent should return host", (done) ->
+        parent.refType.should.eq \collection
+        console.log \yo
+        parent.once \value ->
+          console.log \done
+          it.length.should.eq 2
+          done!
     var child
     describe "child", -> ``it``
       beforeEach (done) ->

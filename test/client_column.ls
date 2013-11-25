@@ -119,8 +119,18 @@ describe 'Websocket Client on Column' ->
       .. ".name should return table name", (done) ->
         client.name!.should.eq \bar
         done!
+    var parent
     describe "parent", -> ``it``
-      .. ".parent should return host", (done) ->
-        client.parent!should.eq "http://localhost:8080/foo/1"
+      beforeEach (done) ->
+        parent := client.parent!
         done!
-
+      afterEach (done) ->
+        console.log \close-parent
+        parent.socket.disconnect!
+        console.log \close-parent-done
+        done!
+      .. ".parent should return entry", (done) ->
+        parent.refType.should.eq \entry
+        parent.on \value ->
+          console.log it
+          done!
