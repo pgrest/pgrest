@@ -21,7 +21,6 @@ class CollectionRef
       'reopen delay': 500
     if @opt?force
       conf['force new connection']= true
-    console.log \construct, opt
 
     @socket = io-client.connect "http://#{@host}", conf
     @socket.on \error ->
@@ -34,13 +33,10 @@ class CollectionRef
     if event == \value
       # get current data from server and return it immediately
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:#event"
-      console.log "SUBSCRIBE:#{@tbl}:#event compeleted"
       <~ @socket.emit "GETALL:#{@tbl}"
-      console.log "GET:#{@tbl} completed"
       cb? it
     else
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:#event"
-      console.log "SUBSCRIBE:#{@tbl}:#event compeleted"
 
   set: (value, cb) ->
     @socket.emit "PUT:#{@tbl}", { body: value }, -> cb? it
@@ -78,11 +74,9 @@ class CollectionRef
     @tbl
 
   parent: ->
-    console.log \parent, @opt
     ...
 
   child: ->
-    console.log \child, it, @opt
     new Ref("#{@toString!}/#{it}", @opt)
 
 class ColumnRef
@@ -105,7 +99,6 @@ class ColumnRef
       'reopen delay': 500
     if @opt?force
       conf['force new connection']= true
-    console.log \construct, opt
 
     @socket = io-client.connect "http://#{@host}", conf
     @socket.on \error ->
@@ -122,11 +115,8 @@ class ColumnRef
       @socket.on "#{@tbl}:child_changed", filtered_cb
       @bare_cbs[cb] = filtered_cb
 
-      console.log "SUBSCRIBing:#{@tbl}:child_changed"
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
-      console.log "SUBSCRIBE:#{@tbl}:child_changed completed"
       <~ @socket.emit "GET:#{@tbl}", { _id: @id, _column: @col }
-      console.log "GET:#{@tbl} completed"
       cb? it
     case \child_added
       ...
@@ -198,7 +188,6 @@ class EntryRef
       'reopen delay': 500
     if @opt?force
       conf['force new connection']= true
-    console.log \construct, opt
 
     @socket = io-client.connect "http://#{@host}", conf
     @socket.on \error ->
@@ -215,11 +204,8 @@ class EntryRef
       @socket.on "#{@tbl}:child_changed", filtered_cb
       @bare_cbs[cb] = filtered_cb
 
-      console.log "SUBSCRIBing:#{@tbl}:child_changed"
       <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
-      console.log "SUBSCRIBE:#{@tbl}:child_changed completed"
       <~ @socket.emit "GET:#{@tbl}", { _id: @id }
-      console.log "GET:#{@tbl} completed"
       cb? it
     case \child_added
       ...

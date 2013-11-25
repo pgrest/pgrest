@@ -137,7 +137,6 @@ describe 'Socket' ->
         done!
       .. 'should ...', (done) ->
         socket.on 'foo:value' ->
-          console.log \ok
           it.length.should.eq 3
           done!
         <- socket.emit "SUBSCRIBE:foo:value"
@@ -145,7 +144,6 @@ describe 'Socket' ->
     describe 'SUBSCRIBE:#table:child_added', -> ``it``
       .. 'should receive snapshot if triggered', (done) ->
         socket.on 'foo:child_added' ->
-          console.log \ok
           it.should.deep.eq { _id: 3, bar: 'new'}
           done!
         <- socket.emit "SUBSCRIBE:foo:child_added"

@@ -36,7 +36,7 @@ describe 'Websocket Client on Entry' ->
     app.use express.cookieParser!
     app.use express.json!
     server := require \http .createServer app
-    io = require \socket.io .listen server#, { log: false}
+    io = require \socket.io .listen server, { log: false}
     server.listen 8080
 
     cols <- mount-socket plx, null, io
@@ -44,14 +44,12 @@ describe 'Websocket Client on Entry' ->
 
     done!
   afterEach (done) ->
-    console.log \init-after
     <- plx.query """
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
     client.socket.disconnect!
     server.close!
-    console.log \done-after
     done!
   describe 'Ref is on a entry', ->
     describe "Reference", -> ``it``
@@ -121,34 +119,24 @@ describe 'Websocket Client on Entry' ->
         parent := client.parent!
         done!
       afterEach (done) ->
-        console.log \close-parent
         parent.socket.disconnect!
-        console.log \close-parent-done
         done!
       .. ".parent should return host", (done) ->
         parent.refType.should.eq \collection
-        console.log \yo
         parent.once \value ->
-          console.log \done
           it.length.should.eq 2
           done!
     var child
     describe "child", -> ``it``
       beforeEach (done) ->
-        console.log \init-child
         child := client.child("bar")
-        console.log \init-child-complete
         done!
       afterEach (done) ->
-        console.log \close-child
-        #child.socket.disconnect!
-        console.log \close-child-done
+        child.socket.disconnect!
         done!
       .. ".child should return column", (done) ->
         child.refType.should.eq \column
-        console.log \yo
         child.once \value, ->
-          console.log \done
           it.should.eq \test
           done!
 

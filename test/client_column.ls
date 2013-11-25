@@ -45,14 +45,12 @@ describe 'Websocket Client on Column' ->
 
     done!
   afterEach (done) ->
-    console.log \init-after
     <- plx.query """
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
     client.socket.disconnect!
     server.close!
-    console.log \done-after
     done!
   describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
@@ -125,12 +123,9 @@ describe 'Websocket Client on Column' ->
         parent := client.parent!
         done!
       afterEach (done) ->
-        console.log \close-parent
         parent.socket.disconnect!
-        console.log \close-parent-done
         done!
       .. ".parent should return entry", (done) ->
         parent.refType.should.eq \entry
         parent.on \value ->
-          console.log it
           done!

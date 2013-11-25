@@ -33,7 +33,6 @@ CollectionRef = (function(){
     if ((ref$ = this.opt) != null && ref$.force) {
       conf['force new connection'] = true;
     }
-    console.log('construct', opt);
     this.socket = ioClient.connect("http://" + this.host, conf);
     this.socket.on('error', function(it){
       console.log('error', it);
@@ -45,16 +44,12 @@ CollectionRef = (function(){
     this.socket.on(this.tbl + ":" + event, cb);
     if (event === 'value') {
       this.socket.emit("SUBSCRIBE:" + this.tbl + ":" + event, function(){
-        console.log("SUBSCRIBE:" + this$.tbl + ":" + event + " compeleted");
         return this$.socket.emit("GETALL:" + this$.tbl, function(it){
-          console.log("GET:" + this$.tbl + " completed");
           return typeof cb === 'function' ? cb(it) : void 8;
         });
       });
     } else {
-      this.socket.emit("SUBSCRIBE:" + this.tbl + ":" + event, function(){
-        return console.log("SUBSCRIBE:" + this$.tbl + ":" + event + " compeleted");
-      });
+      this.socket.emit("SUBSCRIBE:" + this.tbl + ":" + event, function(){});
     }
   };
   prototype.set = function(value, cb){
@@ -111,11 +106,9 @@ CollectionRef = (function(){
     return this.tbl;
   };
   prototype.parent = function(){
-    console.log('parent', this.opt);
     throw Error('unimplemented');
   };
   prototype.child = function(it){
-    console.log('child', it, this.opt);
     return new Ref(this.toString() + "/" + it, this.opt);
   };
   return CollectionRef;
@@ -144,7 +137,6 @@ ColumnRef = (function(){
     if ((ref$ = this.opt) != null && ref$.force) {
       conf['force new connection'] = true;
     }
-    console.log('construct', opt);
     this.socket = ioClient.connect("http://" + this.host, conf);
     this.socket.on('error', function(it){
       console.log('error', it);
@@ -163,14 +155,11 @@ ColumnRef = (function(){
       };
       this.socket.on(this.tbl + ":child_changed", filtered_cb);
       this.bare_cbs[cb] = filtered_cb;
-      console.log("SUBSCRIBing:" + this.tbl + ":child_changed");
       this.socket.emit("SUBSCRIBE:" + this.tbl + ":child_changed", function(){
-        console.log("SUBSCRIBE:" + this$.tbl + ":child_changed completed");
         return this$.socket.emit("GET:" + this$.tbl, {
           _id: this$.id,
           _column: this$.col
         }, function(it){
-          console.log("GET:" + this$.tbl + " completed");
           return typeof cb === 'function' ? cb(it) : void 8;
         });
       });
@@ -271,7 +260,6 @@ EntryRef = (function(){
     if ((ref$ = this.opt) != null && ref$.force) {
       conf['force new connection'] = true;
     }
-    console.log('construct', opt);
     this.socket = ioClient.connect("http://" + this.host, conf);
     this.socket.on('error', function(it){
       console.log('error', it);
@@ -290,13 +278,10 @@ EntryRef = (function(){
       };
       this.socket.on(this.tbl + ":child_changed", filtered_cb);
       this.bare_cbs[cb] = filtered_cb;
-      console.log("SUBSCRIBing:" + this.tbl + ":child_changed");
       this.socket.emit("SUBSCRIBE:" + this.tbl + ":child_changed", function(){
-        console.log("SUBSCRIBE:" + this$.tbl + ":child_changed completed");
         return this$.socket.emit("GET:" + this$.tbl, {
           _id: this$.id
         }, function(it){
-          console.log("GET:" + this$.tbl + " completed");
           return typeof cb === 'function' ? cb(it) : void 8;
         });
       });

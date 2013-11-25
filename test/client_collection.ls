@@ -44,14 +44,12 @@ describe 'Websocket Client on Collection' ->
 
     done!
   afterEach (done) ->
-    console.log \init-after
     <- plx.query """
     DROP TABLE IF EXISTS foo;
     DROP TABLE IF EXISTS bar;
     """
     client.socket.disconnect!
     server.close!
-    console.log \done-after
     done!
   describe 'Ref is on a collection', ->
     describe "Reference", -> ``it``
@@ -61,7 +59,6 @@ describe 'Websocket Client on Collection' ->
     describe "Reading values", -> ``it``
       .. 'should be able to get all entries via \'value\' event', (done) ->
         client.on \value ->
-          console.log it
           it.length.should.eq 2
           done!
     describe "Events", -> ``it``
@@ -181,9 +178,7 @@ describe 'Websocket Client on Collection' ->
         child := client.child(1)
         done!
       afterEach (done) ->
-        console.log \close-child
         child.socket.disconnect!
-        console.log \close-child-done
         done!
       .. ".child should return a ref point to entry", (done) ->
         child.refType.should.eq \entry
