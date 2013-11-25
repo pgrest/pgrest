@@ -1,6 +1,6 @@
 should = (require \chai).should!
 {mk-pgrest-fortest} = require \./testlib
-pgclient = require "../client/client" .Ref
+pgclient = require "../client/ref" .Ref
 
 require! \express
 pgrest = require \..
