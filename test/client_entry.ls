@@ -36,11 +36,11 @@ describe 'Websocket Client on Entry' ->
     app.use express.cookieParser!
     app.use express.json!
     server := require \http .createServer app
-    io = require \socket.io .listen server, { log: false}
+    io = require \socket.io .listen server#, { log: false}
     server.listen 8080
 
     cols <- mount-socket plx, null, io
-    client := new pgclient("#socket-url/foo/1")
+    client := new pgclient "#socket-url/foo/1", {force: true }
 
     done!
   afterEach (done) ->
@@ -84,22 +84,17 @@ describe 'Websocket Client on Entry' ->
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
         client.on \value, ->
-          # an empty callback
-        client.socket.listeners(\foo:child_changed).length.should.eq 1
-        client.off \value
-        client.socket.listeners(\foo:child_changed).length.should.eq 0
-        done!
+          client.socket.listeners(\foo:child_changed).length.should.eq 1
+          client.off \value
+          client.socket.listeners(\foo:child_changed).length.should.eq 0
+          done!
       .. '.off can remove specified listener on a event', (done) ->
-        cb1 = ->
-          #empty callback
-        cb2 = ->
-          #empty callback2
-        client.on \value, cb1
-        client.on \value, cb2
-        client.socket.listeners(\foo:child_changed).length.should.eq 2
-        client.off \value, cb1
-        client.socket.listeners(\foo:child_changed).length.should.eq 1
-        done!
+        cb = ->
+          client.socket.listeners(\foo:child_changed).length.should.eq 1
+          client.off \value, cb
+          client.socket.listeners(\foo:child_changed).length.should.eq 0
+          done!
+        client.on \value, cb
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
         client.once \value, ->
@@ -124,14 +119,23 @@ describe 'Websocket Client on Entry' ->
       .. ".parent should return collection", (done) ->
         client.parent!should.eq "http://localhost:8080/foo"
         done!
+    var child
     describe "child", -> ``it``
+      beforeEach (done) ->
+        console.log \init-child
+        child := client.child("bar")
+        console.log \init-child-complete
+        done!
+      afterEach (done) ->
+        console.log \close-child
+        #child.socket.disconnect!
+        console.log \close-child-done
+        done!
       .. ".child should return column", (done) ->
-        child = client.child("bar")
         child.refType.should.eq \column
-        child.on \value, ->
+        console.log \yo
+        child.once \value, ->
+          console.log \done
           it.should.eq \test
-          console.log \close-child
-          child.socket.disconnect!
-          console.log \close-child-done
           done!
 

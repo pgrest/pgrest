@@ -41,7 +41,7 @@ describe 'Websocket Client on Column' ->
     server.listen 8080
 
     cols <- mount-socket plx, null, io
-    client := new pgclient("#socket-url/foo/1/bar")
+    client := new pgclient "#socket-url/foo/1/bar", { force: true }
 
     done!
   afterEach (done) ->
@@ -88,22 +88,17 @@ describe 'Websocket Client on Column' ->
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
         client.on \value, ->
-          # an empty callback
-        client.socket.listeners(\foo:child_changed).length.should.eq 1
-        client.off \value
-        client.socket.listeners(\foo:child_changed).length.should.eq 0
-        done!
+          client.socket.listeners(\foo:child_changed).length.should.eq 1
+          client.off \value
+          client.socket.listeners(\foo:child_changed).length.should.eq 0
+          done!
       .. '.off can remove specified listener on a event', (done) ->
-        cb1 = ->
-          #empty callback
-        cb2 = ->
-          #empty callback2
-        client.on \value, cb1
-        client.on \value, cb2
-        client.socket.listeners(\foo:child_changed).length.should.eq 2
-        client.off \value, cb1
-        client.socket.listeners(\foo:child_changed).length.should.eq 1
-        done!
+        cb = ->
+          client.socket.listeners(\foo:child_changed).length.should.eq 1
+          client.off \value, cb
+          client.socket.listeners(\foo:child_changed).length.should.eq 0
+          done!
+        client.on \value, cb
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
         client.once \value, ->

@@ -40,7 +40,7 @@ describe 'Websocket Client on Collection' ->
     server.listen 8080
 
     cols <- mount-socket plx, null, io
-    client := new pgclient("#socket-url/foo")
+    client := new pgclient "#socket-url/foo", { force: true }
 
     done!
   afterEach (done) ->
@@ -61,6 +61,7 @@ describe 'Websocket Client on Collection' ->
     describe "Reading values", -> ``it``
       .. 'should be able to get all entries via \'value\' event', (done) ->
         client.on \value ->
+          console.log it
           it.length.should.eq 2
           done!
     describe "Events", -> ``it``
@@ -114,8 +115,6 @@ describe 'Websocket Client on Collection' ->
           done!
       .. '.remove should work if collection has value trigger on it', (done) ->
         value_trigger = ->
-          #TODO: this will be triggered multiple times
-          # because setting a collection from 2 row to 1 row will trigger 2 child_remove and 1 child_added
           if it.length == 0
             client.off \value, value_trigger
             done!
@@ -123,6 +122,7 @@ describe 'Websocket Client on Collection' ->
         client.remove!
       .. '.remove should work if collection has child_added trigger on it', (done) ->
         client.on \child_added, ->
+        <- setTimeout _, 100ms
         client.remove!
         done!
       .. '.remove should work if collection has child_removed trigger on it', (done) ->
@@ -141,23 +141,18 @@ describe 'Websocket Client on Collection' ->
         client.remove!
     describe "Removing listener", -> ``it``
       .. '.off should remove all listener on a specify event', (done) ->
-        client.on \child_removed, ->
-          # an empty callback
-        client.socket.listeners(\foo:child_removed).length.should.eq 1
-        client.off \child_removed
-        client.socket.listeners(\foo:child_removed).length.should.eq 0
-        done!
+        client.on \value, ->
+          client.socket.listeners(\foo:value).length.should.eq 1
+          client.off \value
+          client.socket.listeners(\foo:value).length.should.eq 0
+          done!
       .. '.off can remove specified listener on a event', (done) ->
-        cb1 = ->
-          #empty callback
-        cb2 = ->
-          #empty callback2
-        client.on \child_removed, cb1
-        client.on \child_removed, cb2
-        client.socket.listeners(\foo:child_removed).length.should.eq 2
-        client.off \child_removed, cb1
-        client.socket.listeners(\foo:child_removed).length.should.eq 1
-        done!
+        cb = ->
+          client.socket.listeners(\foo:value).length.should.eq 1
+          client.off \value, cb
+          client.socket.listeners(\foo:value).length.should.eq 0
+          done!
+        client.on \value, cb
     describe "Once callback", -> ``it``
       .. '.once callback should only fire once', (done) ->
         client.once \child_added, ->
@@ -184,13 +179,18 @@ describe 'Websocket Client on Collection' ->
       .. ".parent should return host", (done) ->
         client.parent!should.eq "http://localhost:8080"
         done!
+    var child
     describe "child", -> ``it``
+      beforeEach (done) ->
+        child := client.child(1)
+        done!
+      afterEach (done) ->
+        console.log \close-child
+        child.socket.disconnect!
+        console.log \close-child-done
+        done!
       .. ".child should return a ref point to entry", (done) ->
-        child = client.child(1)
         child.refType.should.eq \entry
         child.on \value, ->
           it.should.deep.eq { _id: 1, bar: \test }
-          console.log \close-child
-          child.socket.disconnect!
-          console.log \close-child-done
           done!

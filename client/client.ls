@@ -3,7 +3,7 @@ url = require \url
 events = require \events
 
 class Ref
-  (uri) ->
+  (uri, opt) ->
     {@host, @pathname} = url.parse uri
     {1:@tbl, 2:@id, 3:@col} = @pathname.split '/'
 
@@ -18,13 +18,23 @@ class Ref
     else
       @refType = \root
 
-    @socket = io-client.connect "http://#{@host}", 
+    @opt = opt
+    conf = if opt?force
       transports: ['websocket']
       'force new connection': true
-      'connect timeout': 999999999
+      'connect timeout': 999999
       'reconnect': true
       'reconnection delay': 500
       'reopen delay': 500
+    else
+      transports: ['websocket']
+      'connect timeout': 999999
+      'reconnect': true
+      'reconnection delay': 500
+      'reopen delay': 500
+    console.log \construct, opt
+
+    @socket = io-client.connect "http://#{@host}", conf
     @socket.on \error ->
       console.log \error, it
       throw it
@@ -54,6 +64,7 @@ class Ref
         @socket.on "#{@tbl}:child_changed", filtered_cb
         @bare_cbs[cb] = filtered_cb
 
+        console.log "SUBSCRIBing:#{@tbl}:child_changed"
         <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
         console.log "SUBSCRIBE:#{@tbl}:child_changed completed"
         <~ @socket.emit "GET:#{@tbl}", { _id: @id }
@@ -75,6 +86,7 @@ class Ref
         @socket.on "#{@tbl}:child_changed", filtered_cb
         @bare_cbs[cb] = filtered_cb
 
+        console.log "SUBSCRIBing:#{@tbl}:child_changed"
         <~ @socket.emit "SUBSCRIBE:#{@tbl}:child_changed"
         console.log "SUBSCRIBE:#{@tbl}:child_changed completed"
         <~ @socket.emit "GET:#{@tbl}", { _id: @id, _column: @col }
@@ -141,6 +153,7 @@ class Ref
           @socket.removeAllListeners "#{@tbl}:child_changed"
       else
         ...
+        console.log \mooooooooooooooooooooooooo
     case \column
       if event == \value
         if cb
@@ -195,11 +208,12 @@ class Ref
       "#{@root!}/#{@tbl}/#{@id}"
 
   child: ->
+    console.log \child, it, @opt
     switch @refType
     case \collection
-      new Ref("#{@toString!}/#{it}")
+      new Ref("#{@toString!}/#{it}", @opt)
     case \entry
-      new Ref("#{@toString!}/#{it}")
+      new Ref("#{@toString!}/#{it}", @opt)
     case \column
       ...
 

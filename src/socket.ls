@@ -52,30 +52,29 @@ create-func-trigger-on-table = (plx, names, io, cb) ->
       EXECUTE PROCEDURE pgrest_subscription_trigger_#{name}_#{event}();
     """
   notification_cb = ->
-    #console.log \notified, it.channel, it.payload
+    console.log \notified, it.channel, it.payload
     tbl = it.channel.split('_')[2]
     event = it.channel.split('_').slice 3 .join \_
     row = it.payload
     sockets-registered-on-event = []
     sockets-registered-value-event = []
     for socket_id, socket of io.sockets.sockets
-      #console.log \socket-id, socket_id
+      console.log \socket-id, socket_id
       if io.sockets.sockets[socket_id].listen_table
         sockets-registered-on-event.push socket_id if io.sockets.sockets[socket_id].listen_table.indexOf("#tbl:#event") != -1
         sockets-registered-value-event.push socket_id if io.sockets.sockets[socket_id].listen_table.indexOf("#tbl:value") != -1
 
-    #console.log \need-event sockets-registered-on-event
+    console.log \need-event sockets-registered-on-event
     for socket_id in sockets-registered-on-event
       #console.log \emit-to, socket_id, "#tbl:#event"
       io.sockets.sockets[socket_id].emit "#tbl:#event", JSON.parse row
 
-    #console.log \need-value, sockets-registered-value-event
+    console.log \need-value, sockets-registered-value-event
     if sockets-registered-value-event.length > 0
-      #TODO: sometime tbl does not exists?
       cols <- plx.query "SELECT * FROM #tbl"
-      #console.log \value-return
+      console.log \value-return
       for socket_id in sockets-registered-value-event
-        #console.log \emit-value-to, socket_id, "#tbl:value", event
+        console.log \emit-value-to, socket_id, "#tbl:value", event
         io.sockets.sockets[socket_id].emit "#tbl:value", cols
 
   all-funcs = for event in <[ child_added child_changed child_removed ]>
