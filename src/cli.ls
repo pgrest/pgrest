@@ -32,16 +32,17 @@ export function get-opts
   get_db_conn = ->
     if cfg.dbconn and cfg.dbname
       conString = "#{cfg.dbconn}/#{cfg.dbname}"
-    else if argv.pgsock
-      conString = do
-        host: argv.pgsock
-        database: conString
     else
       conString = argv.db \
         or process.env['PLV8XCONN'] \
         or process.env['PLV8XDB'] \
         or process.env.TESTDBNAME \
         or process.argv?2
+    if argv.pgsock
+      conString = do
+        host: argv.pgsock
+        database: conString
+    return conString
   opts = do
     host: argv.host or cfg.host or "127.0.0.1"
     port: argv.port or cfg.port or "3000"
