@@ -39,7 +39,8 @@
     "mocha": "*",
     "supertest": "0.7.x",
     "chai": "*",
-    "LiveScript": "1.1.x"
+    "LiveScript": "1.1.x",
+    "browserify": "*"
   },
   "optionalDependencies": {
     "passport": "0.1.x",
