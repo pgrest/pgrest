@@ -139,7 +139,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     throw "socket.io required for starting server" unless io
     io = io.listen server
     io.set "log level", 1
-    cols <- mount-socket plx, null, io
+    cols <- mount-socket plx, opts.schema, io
 
   <- server.listen opts.port, opts.host, 511
   winston.info "Available collections:\n#{ cols.sort! * ' ' }"

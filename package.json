@@ -18,7 +18,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "prepublish": "lsc -cj package.ls &&\nlsc -bpc bin/cmd.ls > bin/cmd.js &&\nchmod 755 bin/cmd.js &&\nlsc -bc -o lib src"
+    "prepublish": "lsc -cj package.ls &&\nlsc -bpc bin/cmd.ls > bin/cmd.js &&\nchmod 755 bin/cmd.js &&\nlsc -bc -o lib src &&\nlsc -bc client/ref.ls &&\nbrowserify client/index.js -o client/dist/pgbase.js"
   },
   "engines": {
     "node": "*"
@@ -39,7 +39,8 @@
     "mocha": "*",
     "supertest": "0.7.x",
     "chai": "*",
-    "LiveScript": "1.1.x"
+    "LiveScript": "1.2.x",
+    "browserify": "*"
   },
   "optionalDependencies": {
     "passport": "0.1.x",

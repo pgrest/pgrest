@@ -7,7 +7,7 @@ pgrest = require \..
 
 socket-url = 'http://localhost:8080'
 
-var _plx, plx, app, socket
+var _plx, plx, app, socket, server
 describe 'Socket' ->
   this.timeout 10000ms
   beforeEach (done) ->
@@ -29,127 +29,152 @@ describe 'Socket' ->
     INSERT INTO bar (_id, info) values(1, 't1');
     INSERT INTO bar (_id, info) values(2, 't2');
     """
+    
+    {mount-default,with-prefix} = pgrest.routes!
+    {mount-socket} = pgrest.socket!
+    app := express!
+    app.use express.cookieParser!
+    app.use express.json!
+    server := require \http .createServer app
+    io = require \socket.io .listen server, { log: false}
+    server.listen 8080
 
+    cols <- mount-socket plx, null, io
     socket := io-client.connect socket-url, {transports: ['websocket'], 'force new connection': true}
     socket.on \error ->
       throw it
-    
-    unless app
-      {mount-default,with-prefix} = pgrest.routes!
-      {mount-socket} = pgrest.socket!
-      app := express!
-      app.use express.cookieParser!
-      app.use express.json!
-      server = require \http .createServer app
-      io = require \socket.io .listen server, { log: false}
-      server.listen 8080
-
-      cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
-      cols <- mount-socket plx, null, io
-      done!
-    else
-      done!
+    done!
   afterEach (done) ->
-    <- plx.query """
+    e, r <- plx.query """
     DROP TABLE IF EXISTS foo;
+    DROP TABLE IF EXISTS bar;
     """
     socket.disconnect!
+    #server.close!
     done!
   describe 'with public schema' ->
+    describe 'GETALL:#table', -> ``it``
+      .. 'should return all entries in the table without pagination', (done) ->
+        socket.emit "GETALL:foo", ->
+          it[0].should.deep.eq { _id: 1, bar: 'test' }
+          it[1].should.deep.eq { _id: 2, bar: 'test2' }
+          done!
     describe 'GET:#table', -> ``it``
       .. 'should get all entries in the table', (done) ->
-        socket.on \complete ->
+        socket.emit "GET:foo", ->
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           it.entries[1].should.deep.eq { _id: 2, bar: 'test2' }
           done!
-        socket.emit "GET:foo"
-    describe 'GET:#table', -> ``it``
       .. 'should work on any table', (done) ->
-        socket.on \complete ->
+        socket.emit "GET:bar", ->
           it.entries[0].should.deep.eq { _id: 1, info: 't1' }
           it.entries[1].should.deep.eq { _id: 2, info: 't2' }
           done!
-        socket.emit "GET:bar"
-    describe 'GET:#table with query param', -> ``it``
-      .. 'should work', (done) ->
-        socket.on "complete" ->
+      .. 'should work with query params', (done) ->
+        socket.emit "GET:foo", { q: '{"_id":1}' }, ->
           it.paging.count.should.eq 1
           it.entries[0].should.deep.eq { _id: 1, bar: 'test' }
           done!
-        socket.emit "GET:foo", { q: '{"_id":1}' }
+      .. 'should be able to get entry with specified _id', (done) ->
+        socket.emit "GET:foo", { _id: 1 }, ->
+          it.should.deep.eq { _id: 1, bar: 'test'}
+          done!
+      .. 'should be able to return the column of the entry with specified _id', (done) ->
+        socket.emit "GET:foo", { _id: 1, _column: "bar" }, ->
+          it.should.deep.eq "test"
+          done!
     describe 'POST:#table', -> ``it``
       .. 'should insert entry to table', (done) ->
-        socket.on \complete ->
+        socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}, ->
           it.should.deep.eq [1]
           cols <- plx.query "SELECT * FROM foo"
           cols.length.should.eq 3
           cols[2].should.deep.eq { _id:3, bar: "new"}
           done!
-        socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
     describe 'DELETE:#table', -> ``it``
       .. 'should delete all entries in the table', (done) ->
-        socket.on \complete ->
+        socket.emit "DELETE:foo", ->
           it.should.eq 2
           cols <- plx.query "SELECT * FROM foo"
           cols.should.deep.eq []
           done!
-        socket.emit "DELETE:foo"
-    describe 'PUT:#table', -> ``it``
-      .. 'should replace entries in the table', (done) ->
-        socket.on "complete" ->
-          it.should.deep.eq [1]
-          cols <- plx.query "SELECT * FROM foo"
-          cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
-          done!
-        socket.emit "PUT:foo", { body: { _id: 2, bar: 'replaced'}}
-    describe 'PUT:#table with upsert', -> ``it``
-      .. 'should upsert entries in the table', (done) ->
-        socket.on "complete" ->
-          it.should.deep.eq { updated: true }
-          cols <- plx.query "SELECT * FROM foo WHERE _id=2"
-          cols[0].should.deep.eq { _id:2, bar: 'upserted'}
-          done!
-        socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}
-    describe 'GET:#table with _id param', -> ``it``
-      .. 'should get entry with specified _id', (done) ->
-        socket.on \complete ->
-          it.should.deep.eq { _id: 1, bar: 'test'}
-          done!
-        socket.emit "GET:foo", { _id: 1 }
-    describe 'PUT:#table with _id param', -> ``it``
-      .. 'should upsert entry with specified _id', (done) ->
-        socket.on \complete ->
-          it.should.deep.eq { updated: true }
-          cols <- plx.query "SELECT * FROM foo WHERE _id=1"
-          cols[0].should.deep.eq { _id:1, bar: 'upserted'}
-          done!
-        socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }
-    describe 'DELETE:#table with _id param', -> ``it``
-      .. 'should remove entry with specified _id', (done) ->
-        socket.on \complete ->
+      .. 'should be able to remove entry with specified _id', (done) ->
+        socket.emit "DELETE:foo", { _id: 1 }, ->
           it.should.eq 1
           cols <- plx.query "SELECT * FROM foo WHERE _id=1"
           cols.length.should.eq 0
           done!
-        socket.emit "DELETE:foo", { _id: 1 }
-    describe 'GET:#table with _id and _column param', -> ``it``
-      .. 'should return the column of the entry with specified _id', (done) ->
-        socket.on \complete ->
-          it.should.deep.eq "test"
+    describe 'PUT:#table', -> ``it``
+      .. 'should replace entries in the table', (done) ->
+        socket.emit "PUT:foo", { body: { _id: 2, bar: 'replaced'}}, ->
+          it.should.deep.eq [1]
+          cols <- plx.query "SELECT * FROM foo"
+          cols.should.deep.eq [{ _id:2, bar: 'replaced'}]
           done!
-        socket.emit "GET:foo", { _id: 1, _column: "bar" }
-    describe 'SUBSCRIBE:#table', -> ``it``
+      .. 'should be able to replace collection with multiple entries', (done) ->
+        socket.emit "PUT:foo", { body: [{ _id: 1, bar: 'replaced'},{ _id: 2, bar: 'replaced'}]}, ->
+          it.should.deep.eq [1, 1]
+          cols <- plx.query "SELECT * FROM foo"
+          cols.should.deep.eq [{ _id: 1, bar: 'replaced'},{ _id:2, bar: 'replaced'}]
+          done!
+      .. 'should upsert entries in the table when u == true', (done) ->
+        socket.emit "PUT:foo", { body: { _id: 2, bar: 'upserted'}, u: true}, ->
+          it.should.deep.eq { updated: true }
+          cols <- plx.query "SELECT * FROM foo WHERE _id=2"
+          cols[0].should.deep.eq { _id:2, bar: 'upserted'}
+          done!
+      .. 'should be able to upsert entry with specified _id', (done) ->
+        socket.emit "PUT:foo", { _id: 1, body: { _id: 1, bar: 'upserted'} }, ->
+          it.should.deep.eq { updated: true }
+          cols <- plx.query "SELECT * FROM foo WHERE _id=1"
+          cols[0].should.deep.eq { _id:1, bar: 'upserted'}
+          done!
+  describe 'Subscription' ->
+    describe 'SUBSCRIBE:#table:value', -> ``it``
       .. 'should create trigger and return OK', (done) ->
-        socket.on \complete ->
+        <- socket.emit "SUBSCRIBE:foo:value"
+        done!
+      .. 'should ...', (done) ->
+        socket.on 'foo:value' ->
+          it.length.should.eq 3
           done!
-        socket.emit "SUBSCRIBE:foo"
-    describe 'SUBSCRIBE:#table', -> ``it``
-      .. 'should receive collection snapshot if triggered', (done) ->
-        socket.on 'CHANNEL:foo' ->
+        <- socket.emit "SUBSCRIBE:foo:value"
+        <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
+    describe 'SUBSCRIBE:#table:child_added', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:child_added' ->
           it.should.deep.eq { _id: 3, bar: 'new'}
           done!
-        socket.on \complete ->
-          if it == "OK"
-            socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
-        socket.emit "SUBSCRIBE:foo"
+        <- socket.emit "SUBSCRIBE:foo:child_added"
+        <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
+    describe 'SUBSCRIBE:#table:child_removed', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:child_removed' ->
+          it.should.deep.eq { _id: 1, bar: 'test'}
+          done!
+        <- socket.emit "SUBSCRIBE:foo:child_removed"
+        <- socket.emit "DELETE:foo", { _id: 1 }
+      .. 'should receive snapshot if the whole collection is deleted', (done) ->
+        socket.on 'foo:child_removed' ->
+          if it._id == 1
+            done!
+        <- socket.emit "SUBSCRIBE:foo:child_removed"
+        <- socket.emit "DELETE:foo"
+    describe 'SUBSCRIBE:#table:child_changed', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:child_changed' ->
+          it.should.deep.eq { _id: 2, bar: 'replaced'}
+          done!
+        <- socket.emit "SUBSCRIBE:foo:child_changed"
+        <- socket.emit "PUT:foo", { _id: 1, body: { _id: 2, bar: 'replaced'}}
+    describe 'SUBSCRIBE:#table:value', -> ``it``
+      .. 'should receive snapshot if triggered', (done) ->
+        socket.on 'foo:value' ->
+          it.length.should.eq 3
+          it[0].should.deep.eq { _id: 1, bar: 'test'}
+          it[1].should.deep.eq { _id: 2, bar: 'test2'}
+          it[2].should.deep.eq { _id: 3, bar: 'new'}
+          done!
+        <- socket.emit "SUBSCRIBE:foo:value"
+        <- socket.emit "POST:foo", { body: { _id: 3, bar: 'new'}}
 
