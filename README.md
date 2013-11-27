@@ -13,7 +13,7 @@ WARNING: this is work in progress and everything is likely to change!
 * capable of loading Node.js modules
 * compatible with MongoLab's REST API
 
-Want to learn more? See the [https://github.com/clkao/pgrest/wiki](wiki).
+Want to learn more? See the [wiki](https://github.com/clkao/pgrest/wiki).
 
 # Installation
 
