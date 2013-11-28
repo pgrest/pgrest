@@ -241,7 +241,7 @@ class EntryRef
 
   set: (value, cb) ->
     @need-connection!
-    @socket.emit "PUT:#{@tbl}", { body: value, u: true }, -> cb? it
+    @socket.emit "PUT:#{@tbl}", { body: value, _id: @id, u: true }, -> cb? it
 
   push: (value, cb) ->
     @need-connection!
@@ -249,7 +249,7 @@ class EntryRef
 
   update: (value, cb) ->
     @need-connection!
-    @socket.emit "PUT:#{@tbl}", { body: value, u: true }, -> cb? it
+    @socket.emit "PUT:#{@tbl}", { body: value, _id: @id, u: true }, -> cb? it
 
   remove: (cb) ->
     @need-connection!

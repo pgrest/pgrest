@@ -66,12 +66,48 @@ describe 'Websocket Client on Entry' ->
         client.on \value, ->
           it.should.deep.eq { _id: 1, bar: \replaced }
           done!
+      .. '.set should work without _id param', (done) ->
+        <- client.set { bar: \replaced }
+        cols <- plx.query "SELECT * FROM foo"
+        for c in cols
+          if c._id == 1
+            c.should.deep.eq { _id: 1, bar: \replaced }
+          else if c.id == 2
+            c.should.deep.eq { _id: 2, bar: \test2}
+        done!
+      .. '.set should only replace the entry', (done) ->
+        <- client.set { _id: 1, bar: \replaced }
+        cols <- plx.query "SELECT * FROM foo"
+        for c in cols
+          if c._id == 1
+            c.should.deep.eq { _id: 1, bar: \replaced }
+          else if c.id == 2
+            c.should.deep.eq { _id: 2, bar: \test2}
+        done!
     describe "Updating value", -> ``it``
       .. '.update should replace the entry', (done) ->
         client.update { _id: 1, bar: \replaced }
         client.on \value, ->
           it.should.deep.eq { _id: 1, bar: \replaced }
           done!
+      .. '.update should work without _id param', (done) ->
+        <- client.update { bar: \replaced }
+        cols <- plx.query "SELECT * FROM foo"
+        for c in cols
+          if c._id == 1
+            c.should.deep.eq { _id: 1, bar: \replaced }
+          else if c.id == 2
+            c.should.deep.eq { _id: 2, bar: \test2}
+        done!
+      .. '.update should only replace the entry', (done) ->
+        <- client.update { _id: 1, bar: \replaced }
+        cols <- plx.query "SELECT * FROM foo"
+        for c in cols
+          if c._id == 1
+            c.should.deep.eq { _id: 1, bar: \replaced }
+          else if c.id == 2
+            c.should.deep.eq { _id: 2, bar: \test2}
+        done!
     describe "Removing values", -> ``it``
       .. '.remove should clear the entry', (done) ->
         <- client.remove

@@ -330,6 +330,7 @@ EntryRef = (function(){
     this.needConnection();
     return this.socket.emit("PUT:" + this.tbl, {
       body: value,
+      _id: this.id,
       u: true
     }, function(it){
       return typeof cb === 'function' ? cb(it) : void 8;
@@ -343,6 +344,7 @@ EntryRef = (function(){
     this.needConnection();
     return this.socket.emit("PUT:" + this.tbl, {
       body: value,
+      _id: this.id,
       u: true
     }, function(it){
       return typeof cb === 'function' ? cb(it) : void 8;
