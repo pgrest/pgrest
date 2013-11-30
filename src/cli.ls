@@ -131,6 +131,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     cols <- mount-socket plx, opts.schema, io
 
   <- server.listen opts.port, opts.host, 511
+  pgrest.invoke-hook! \posthook-cli-server-listen, opts, plx, app, server
   winston.info "Available collections:\n#{ cols.sort! * ' ' }"
   winston.info "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
   if cb
