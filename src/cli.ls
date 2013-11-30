@@ -49,7 +49,6 @@ export function get-opts
     prefix: argv.prefix or cfg.prefix or "/collections"
     conString: get_db_conn!
     meta: cfg.meta or {}
-    auth: cfg.auth or {}
     schema: argv.schema or cfg.dbschema or 'public'
     boot: argv.boot or false
     cors: argv.cors or false
@@ -110,16 +109,6 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   middleware.push pgparam-init
   if opts.cookiename
     middleware.push pgparam-session opts.cookiename
-
-  if opts.auth.enable
-    require! passport
-    app.use express.cookieParser!
-    app.use express.bodyParser!
-    app.use express.methodOverride!
-    app.use express.session secret: 'test'
-    app.use passport.initialize!
-    app.use passport.session!
-    mount-auth plx, app, middleware, opts
 
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r

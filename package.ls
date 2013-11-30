@@ -41,8 +41,3 @@ devDependencies:
   chai: \*
   LiveScript: \1.2.x
   browserify: \*
-optionalDependencies:
-  passport: \0.1.x
-  'passport-facebook': \1.0.x
-  'passport-twitter': \1.0.x
-  'passport-google-oauth': \0.1.x
