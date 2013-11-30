@@ -7,6 +7,8 @@ export function use (plugin)
 
 export function init-plugins (opts)
   for plugin in used
+    if plugin.process-opts?
+      plugin.process-opts opts
     if plugin.isactive opts
       plugin.initialize!
 

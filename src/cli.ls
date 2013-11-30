@@ -56,6 +56,7 @@ export function get-opts
     app: argv.app or cfg.appname or null
     websocket: argv.websocket or false
     argv: argv
+    cfg: cfg
 
 pgparam-init = (req, res, next) ->
   req.pgparam = {}
@@ -68,10 +69,10 @@ pgparam-session = (cookiename)->
     next!
 
 export function cli(__opts, use, middleware, bootstrap, cb)
-  pgrest.init-plugins! opts
   if !Object.keys __opts .length
     __opts = get-opts!
   opts = ensured-opts __opts
+  pgrest.init-plugins! opts
 
   #@FIXME: not test yet.
   if not bootstrap? and opts.app?
