@@ -58,21 +58,15 @@ export function get-opts
     websocket: argv.websocket or false
     argv: argv
 
-mk-pgparam = (enabled_auth, cookiename)->
-  pgparam = (req, res, next) ->
-    req.pgparam = {}
-    if enabled_auth
-      if req.isAuthenticated!
-        winston.info "#{req.path} user is authzed. init db sesion"
-        req.pgparam.auth = req.user
-      else
-        winston.info "#{req.path} user is not authzed. reset db session"
-        req.pgparam = {}
+pgparam-init = (req, res, next) ->
+  req.pgparam = {}
+  next!
 
+pgparam-session = (cookiename)->
+  (req, res, next) ->
     if cookiename?
       req.pgparam.session = req.cookies[cookiename]
     next!
-  pgparam
 
 export function cli(__opts, use, middleware, bootstrap, cb)
 
@@ -113,8 +107,9 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     require! cors
     middleware.unshift cors!
 
+  middleware.push pgparam-init
   if opts.cookiename
-    middleware.push mk-pgparam opts.auth.enable, opts.cookiename
+    middleware.push pgparam-session opts.cookiename
 
   if opts.auth.enable
     require! passport
@@ -134,7 +129,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
 
   if opts.websocket
     {mount-socket} = pgrest.socket!
-    
+
     io = try require 'socket.io'
     throw "socket.io required for starting server" unless io
     io = io.listen server
