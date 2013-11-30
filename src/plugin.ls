@@ -1,4 +1,5 @@
 used = []
+loaded = []
 
 export function use (plugin)
   unless plugin.isactive?
@@ -11,9 +12,10 @@ export function init-plugins (opts)
       plugin.process-opts opts
     if plugin.isactive opts
       plugin.initialize!
+      loaded.push plugin
 
 export function invoke-hook (hookname, ...args)
-  for plugin in used
+  for plugin in loaded
     hook = plugin[normalized-hookname hookname]
     if hook
       hook ...args
