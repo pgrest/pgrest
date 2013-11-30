@@ -30,6 +30,9 @@ exports.new = (conString, config, cb) ->
 {q,qq,compile,build_view_source,order-by} = require \./sql
 
 export routes = -> require \./routes
+export use = -> require \.plugin .use
+export init-plugins = -> require \.plugin .init-plugins
+export invoke-hook = -> require \.plugin .invoke-hook
 export get-opts = -> require \./cli .get-opts
 export cli = -> require \./cli .cli
 export socket = -> require \./socket
