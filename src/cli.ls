@@ -85,7 +85,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
       (_, cb) -> cb!
 
   plx <- pgrest.new opts.conString, {opts.meta}
-  pgrest.invoke-hook! \posthook-pgrest-create-plx, opts, plx
+  pgrest.invoke-hook! \posthook-cli-create-plx, opts, plx
 
   {mount-default,mount-auth,with-prefix} = pgrest.routes!
 
@@ -96,7 +96,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   express = try require \express
   throw "express required for starting server" unless express
   app = express!
-  pgrest.invoke-hook! \posthook-express-create-app, opts, app
+  pgrest.invoke-hook! \posthook-cli-create-app, opts, app
 
   app.use express.json!
   for p in use
@@ -113,13 +113,13 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   if opts.cookiename
     middleware.push pgparam-session opts.cookiename
 
-  pgrest.invoke-hook! \prehook-pgrest-mount-default, opts, plx, app, middleware
+  pgrest.invoke-hook! \prehook-cli-mount-default, opts, plx, app, middleware
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r
     app.all ...args
 
   server = http.createServer app
-  pgrest.invoke-hook! \posthook-pgrest-create-server, opts, server
+  pgrest.invoke-hook! \posthook-cli-create-server, opts, server
 
   if opts.websocket
     {mount-socket} = pgrest.socket!
