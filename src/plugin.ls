@@ -10,7 +10,7 @@ VALIDE_PLUGIN_FUNNAMES = <[
 VALIDE_HOOKNAMES = <[
   posthook-cli-create-plx
   posthook-cli-create-app
-  prehook-cli-mount-auth
+  prehook-cli-mount-default
   posthook-cli-create-server
   posthook-cli-server-listen
   ]>
@@ -24,7 +24,7 @@ ensured-plugin = ->
       lsfnname = camel2dash jsname
       if lsfnname in VALIDE_PLUGIN_FUNNAMES
         continue
-      unless VALIDE_HOOKNAMES[jsname]?
+      unless lsfnname in VALIDE_HOOKNAMES
         errs.push "- #lsfnname"
 
   if errs.length > 0
