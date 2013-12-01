@@ -18,3 +18,15 @@ describe 'Plugin Validation', ->
       (-> pgrest.use fake-plugin)
         .should.throw errmsg.join "\n"
       done!
+
+describe 'Plugin', ->
+  describe 'should be able to hook cli.', -> ``it``
+    .. 'should be able to hook option processing.', (done) ->
+      opts = {}
+      fake-plugin = do
+        isactive: -> true
+        process-opts: (opts) -> opts.test = 1
+      pgrest.use fake-plugin
+      pgrest.init-plugins! opts
+      opts.test.should.eq 1
+      done!
