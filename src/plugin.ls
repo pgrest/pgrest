@@ -27,7 +27,7 @@ ensured-plugin = ->
       unless VALIDE_HOOKNAMES[jsname]?
         errs.push "- #lsfnname"
 
-  if errs
+  if errs.length > 0
     errs.splice(0, 0, "plugin uses unsupported hooks:")
     throw errs.join "\n"
   it
