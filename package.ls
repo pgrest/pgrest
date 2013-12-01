@@ -28,14 +28,16 @@ dependencies:
   optimist: \0.6.x
   trycatch: \1.0.x
   plv8x: \0.6.x
-  express: \3.4.x
   cors: \2.1.x
   \connect-csv : \*
   winston: \~0.7.2
   async: \0.2.x
   "socket.io": \*
   "socket.io-client": \*
+peerDependencies:
+  express: \3.4.x
 devDependencies:
+  express: \3.4.x
   mocha: \*
   supertest: \0.7.x
   chai: \*
