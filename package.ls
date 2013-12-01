@@ -4,13 +4,13 @@ author:
   email: 'clkao@clkao.org'
 name: 'pgrest'
 description: 'enable REST in postgres'
-version: '0.0.8'
+version: '0.1.0'
 main: \lib/index.js
 bin:
   pgrest: 'bin/cmd.js'
 repository:
   type: 'git'
-  url: 'git://github.com/clkao/pgrest.git'
+  url: 'git://github.com/pgrest/pgrest.git'
 scripts:
   test: """
     mocha
