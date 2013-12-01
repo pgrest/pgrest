@@ -19,9 +19,7 @@ scripts:
     lsc -cj package.ls &&
     lsc -bpc bin/cmd.ls > bin/cmd.js &&
     chmod 755 bin/cmd.js &&
-    lsc -bc -o lib src &&
-    lsc -bc client/ref.ls &&
-    browserify client/index.js -o client/dist/pgbase.js
+    lsc -bc -o lib src
   """
 engines: {node: '*'}
 dependencies:
@@ -32,8 +30,6 @@ dependencies:
   \connect-csv : \*
   winston: \~0.7.2
   async: \0.2.x
-  "socket.io": \*
-  "socket.io-client": \*
 peerDependencies:
   express: \3.4.x
 devDependencies:
@@ -42,4 +38,3 @@ devDependencies:
   supertest: \0.7.x
   chai: \*
   LiveScript: \1.2.x
-  browserify: \*
