@@ -49,12 +49,12 @@ export function invoke-hook (hookname, ...args)
     if hook
       hook ...args
 
-capitalize = -> it.replace /(?:^|\s)\S/g, -> it.toUpperCase!
+dash2camel = -> it.replace /(?:^|\s)\S/g, -> it.toUpperCase!
 camel2dash = -> it.replace /([a-z\d])([A-Z])/g, '$1-$2' .toLowerCase!
 
 normalized-hookname = (hookname) ->
   [hd, ...tl] = hookname / \-
   if hd in <[prehook posthook]> and tl
-    hd + (tl.map -> capitalize it) * ''
+    hd + (tl.map -> dash2camel it) * ''
   else
     throw "invalid hook name #hookname"
