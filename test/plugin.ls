@@ -30,3 +30,13 @@ describe 'Plugin', ->
       pgrest.init-plugins! opts
       opts.test.should.eq 1
       done!
+    .. 'should be able to do initialize.', (done) ->
+      fake-plugin = do
+        initialized: false
+        isactive: -> true
+        initialize: -> @initialized = true
+      fake-plugin.initialized.should.not.be.ok
+      pgrest.use fake-plugin
+      pgrest.init-plugins! null
+      fake-plugin.initialized.should.be.ok
+      done!
