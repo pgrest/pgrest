@@ -1,7 +1,7 @@
 pgrest
 ======
 
-[![Build Status](https://travis-ci.org/clkao/pgrest.png?branch=master)](https://travis-ci.org/clkao/pgrest)
+[![Build Status](https://travis-ci.org/pgrest/pgrest.png?branch=master)](https://travis-ci.org/clkao/pgrest)
 
 WARNING: this is work in progress and everything is likely to change!
 
@@ -13,11 +13,11 @@ WARNING: this is work in progress and everything is likely to change!
 * capable of loading Node.js modules
 * compatible with MongoLab's REST API
 
-Want to learn more? See the [wiki](https://github.com/clkao/pgrest/wiki).
+Want to learn more? See the [wiki](https://github.com/pgrest/pgrest/wiki).
 
 # Installation
 
-You need to install the plv8js extension for postgresql.  See [Installation](https://github.com/clkao/pgrest/wiki/Installation) for details.  PostgreSQL 9.0 is required.  We recommend using 9.2.
+You need to install the plv8js extension for postgresql.  See [Installation](https://github.com/pgrest/pgrest/wiki/Installation) for details.  PostgreSQL 9.0 is required.  We recommend using 9.2.
 
 Once you are have plv8js. use npm to install pgrest:
 
