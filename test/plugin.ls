@@ -1,8 +1,16 @@
 should = (require \chai).should!
 
-pgrest = require \../
+var pgrest
+
+unload-pgrest = ->
+  delete require.cache[require.resolve \../lib]
+  delete require.cache[require.resolve \../lib/plugin]
+
 describe 'Plugin Validation', ->
-  pgrest.use.should.be.ok
+  beforeEach (done) ->
+    unload-pgrest!
+    pgrest := require \../
+    done!
   describe 'ensures a plugin is valid.', -> ``it``
     .. 'should throw exception if a plugin does not implement isactive', (done) ->
       (-> pgrest.use {}).should.throw "plugin does not have isactive function!"
@@ -20,6 +28,10 @@ describe 'Plugin Validation', ->
       done!
 
 describe 'Plugin', ->
+  beforeEach (done) ->
+    unload-pgrest!
+    pgrest := require \../
+    done!
   describe 'should be able to hook cli.', -> ``it``
     .. 'should be able to hook option processing.', (done) ->
       opts = {}
