@@ -26,6 +26,13 @@ describe 'Plugin Validation', ->
       (-> pgrest.use fake-plugin)
         .should.throw errmsg.join "\n"
       done!
+    .. 'should be slince if a plugin use valid hooknames.', (done) ->
+      fake-plugin = do
+        isactive: -> true
+        posthook-cli-create-plx: -> false
+      (-> pgrest.use fake-plugin)
+        .should.not.throw!
+      done!
 
 describe 'Plugin', ->
   beforeEach (done) ->
