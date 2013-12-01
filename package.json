@@ -10,7 +10,7 @@
   "version": "0.1.0",
   "main": "lib/index.js",
   "bin": {
-    "pgrest": "bin/cmd.js"
+    "pgrest": "bin/pgrest"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "prepublish": "lsc -cj package.ls &&\nlsc -bpc bin/cmd.ls > bin/cmd.js &&\nchmod 755 bin/cmd.js &&\nlsc -bc -o lib src"
+    "prepublish": "lsc -cj package.ls &&\nlsc -bc -o lib src"
   },
   "engines": {
     "node": "*"

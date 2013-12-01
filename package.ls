@@ -7,7 +7,7 @@ description: 'enable REST in postgres'
 version: '0.1.0'
 main: \lib/index.js
 bin:
-  pgrest: 'bin/cmd.js'
+  pgrest: 'bin/pgrest'
 repository:
   type: 'git'
   url: 'git://github.com/pgrest/pgrest.git'
@@ -17,8 +17,6 @@ scripts:
   """
   prepublish: """
     lsc -cj package.ls &&
-    lsc -bpc bin/cmd.ls > bin/cmd.js &&
-    chmod 755 bin/cmd.js &&
     lsc -bc -o lib src
   """
 engines: {node: '*'}
