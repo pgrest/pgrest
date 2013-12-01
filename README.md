@@ -78,21 +78,6 @@ More importantly, the socket.io client can subscribe to a collection. Any new it
     });
     s.emit("SUBSCRIBE:foo");
 
-# PgBase
-
-PgBase is an attempt to built a firebase-compatible API on top of PgREST
-
-    var ref = new PgBase("http://127.0.0.1:3000/foo");
-    ref.on("child_added", function(it) {
-        $("#log").append(it.info.bar);
-    });
-
-    ref.push({_id:3, info: { bar: "Ke"}});
-
-check out example/pgbase/pgbase.html and client/ref.ls for some infomation.
-
-Document coming soon.
-
 # Developing
 
 ## Runing tests:
