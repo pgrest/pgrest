@@ -1,0 +1,16 @@
+<script src="../../client/dist/pgbase.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+<input type="submit" value="Ke" />
+<div id="log"></div>
+<script>
+var ref = new PgBase("http://127.0.0.1:3000/foo");
+ref.on("child_added", function(it) {
+    $("#log").append(it.info.bar);
+});
+
+$("input").on("click", function () {
+    ref.push({_id:3, info: { bar: "Ke"}});
+});
+
+</script>
