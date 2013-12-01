@@ -36,7 +36,7 @@ peerDependencies:
   express: \3.4.x
 devDependencies:
   express: \3.4.x
-  mocha: \*
+  mocha: \1.14.x
   supertest: \0.7.x
-  chai: \*
+  chai: \1.8.x
   LiveScript: \1.2.x
