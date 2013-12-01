@@ -1,10 +1,39 @@
 used = []
 loaded = []
 
+VALIDE_PLUGIN_FUNNAMES = <[
+  process-opts
+  isactive
+  initialize
+  ]>
+
+VALIDE_HOOKNAMES = <[
+  posthook-cli-create-plx
+  posthook-cli-create-app
+  prehook-cli-mount-auth
+  posthook-cli-create-server
+  posthook-cli-server-listen
+  ]>
+
+ensured-plugin = ->
+  unless it.isactive?
+    throw "plugin does not have isactive function!"
+  errs = []
+  for jsname, v of it
+    if typeof v == \function
+      lsfnname = camel2dash jsname
+      if lsfnname in VALIDE_PLUGIN_FUNNAMES
+        continue
+      unless VALIDE_HOOKNAMES[jsname]?
+        errs.push "- #lsfnname"
+
+  if errs
+    errs.splice(0, 0, "plugin uses unsupported hooks:")
+    throw errs.join "\n"
+  it
+
 export function use (plugin)
-  unless plugin.isactive?
-    throw "try to use invalid plugin!"
-  used.push plugin
+  used.push ensured-plugin plugin
 
 export function init-plugins (opts)
   for plugin in used
@@ -21,6 +50,7 @@ export function invoke-hook (hookname, ...args)
       hook ...args
 
 capitalize = -> it.replace /(?:^|\s)\S/g, -> it.toUpperCase!
+camel2dash = -> it.replace /([a-z\d])([A-Z])/g, '$1-$2' .toLowerCase!
 
 normalized-hookname = (hookname) ->
   [hd, ...tl] = hookname / \-
