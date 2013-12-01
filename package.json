@@ -19,7 +19,7 @@
   "scripts": {
     "test": "mocha",
     "prepublish": "lsc -cj package.ls &&\nlsc -bc -o lib src",
-    "postinstall": "if [ ! -e ./lib ]; then lsc -bc -o lib src; fi"
+    "postinstall": "if [ ! -e ./lib ]; then npm i LiveScript; lsc -bc -o lib src; fi"
   },
   "engines": {
     "node": "*"
