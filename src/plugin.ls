@@ -40,7 +40,8 @@ export function init-plugins (opts)
     if plugin.process-opts?
       plugin.process-opts opts
     if plugin.isactive opts
-      plugin.initialize!
+      if plugin.initialize?
+        plugin.initialize!
       loaded.push plugin
 
 export function invoke-hook (hookname, ...args)
