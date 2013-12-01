@@ -7,18 +7,18 @@
   },
   "name": "pgrest",
   "description": "enable REST in postgres",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "main": "lib/index.js",
   "bin": {
     "pgrest": "bin/cmd.js"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/clkao/pgrest.git"
+    "url": "git://github.com/pgrest/pgrest.git"
   },
   "scripts": {
     "test": "mocha",
-    "prepublish": "lsc -cj package.ls &&\nlsc -bpc bin/cmd.ls > bin/cmd.js &&\nchmod 755 bin/cmd.js &&\nlsc -bc -o lib src &&\nlsc -bc client/ref.ls &&\nbrowserify client/index.js -o client/dist/pgbase.js"
+    "prepublish": "lsc -cj package.ls &&\nlsc -bpc bin/cmd.ls > bin/cmd.js &&\nchmod 755 bin/cmd.js &&\nlsc -bc -o lib src"
   },
   "engines": {
     "node": "*"
@@ -30,9 +30,7 @@
     "cors": "2.1.x",
     "connect-csv": "*",
     "winston": "~0.7.2",
-    "async": "0.2.x",
-    "socket.io": "*",
-    "socket.io-client": "*"
+    "async": "0.2.x"
   },
   "peerDependencies": {
     "express": "3.4.x"
@@ -42,7 +40,6 @@
     "mocha": "*",
     "supertest": "0.7.x",
     "chai": "*",
-    "LiveScript": "1.2.x",
-    "browserify": "*"
+    "LiveScript": "1.2.x"
   }
 }

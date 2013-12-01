@@ -4,13 +4,13 @@ author:
   email: 'clkao@clkao.org'
 name: 'pgrest'
 description: 'enable REST in postgres'
-version: '0.0.8'
+version: '0.1.0'
 main: \lib/index.js
 bin:
   pgrest: 'bin/cmd.js'
 repository:
   type: 'git'
-  url: 'git://github.com/clkao/pgrest.git'
+  url: 'git://github.com/pgrest/pgrest.git'
 scripts:
   test: """
     mocha
@@ -19,9 +19,7 @@ scripts:
     lsc -cj package.ls &&
     lsc -bpc bin/cmd.ls > bin/cmd.js &&
     chmod 755 bin/cmd.js &&
-    lsc -bc -o lib src &&
-    lsc -bc client/ref.ls &&
-    browserify client/index.js -o client/dist/pgbase.js
+    lsc -bc -o lib src
   """
 engines: {node: '*'}
 dependencies:
@@ -32,8 +30,6 @@ dependencies:
   \connect-csv : \*
   winston: \~0.7.2
   async: \0.2.x
-  "socket.io": \*
-  "socket.io-client": \*
 peerDependencies:
   express: \3.4.x
 devDependencies:
@@ -42,4 +38,3 @@ devDependencies:
   supertest: \0.7.x
   chai: \*
   LiveScript: \1.2.x
-  browserify: \*
