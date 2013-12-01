@@ -121,15 +121,6 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   server = http.createServer app
   pgrest.invoke-hook! \posthook-cli-create-server, opts, server
 
-  if opts.websocket
-    {mount-socket} = pgrest.socket!
-
-    io = try require 'socket.io'
-    throw "socket.io required for starting server" unless io
-    io = io.listen server
-    io.set "log level", 1
-    cols <- mount-socket plx, opts.schema, io
-
   <- server.listen opts.port, opts.host, 511
   pgrest.invoke-hook! \posthook-cli-server-listen, opts, plx, app, server
   winston.info "Available collections:\n#{ cols.sort! * ' ' }"
