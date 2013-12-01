@@ -35,7 +35,6 @@ export init-plugins = -> require \./plugin .init-plugins
 export invoke-hook = -> require \./plugin .invoke-hook
 export get-opts = -> require \./cli .get-opts
 export cli = -> require \./cli .cli
-export socket = -> require \./socket
 
 function with-pgparam(fn)
   (param) ->
