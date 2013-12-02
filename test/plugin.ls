@@ -83,3 +83,15 @@ describe 'Plugin', ->
       _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
       _srv.close!
       done!
+    .. 'should be able to hook mount-default.', (done) ->
+      fake-plugin = do
+        isactive: -> true
+        prehook-cli-mount-default: (opts, plx, app, middleware) ->
+          opts.should.be.deep.eq testopts
+          plx.query.should.be.ok
+          app.use.should.be.ok
+          middleware.length.should.eq
+      pgrest.use fake-plugin
+      _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
+      _srv.close!
+      done!
