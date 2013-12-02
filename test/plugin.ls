@@ -105,3 +105,15 @@ describe 'Plugin', ->
       _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
       _srv.close!
       done!
+    .. 'should be able to hook server listen.', (done) ->
+      fake-plugin = do
+        isactive: -> true
+        posthook-cli-server-listen: (opts, plx, app, srv) ->
+          opts.should.be.deep.eq testopts
+          plx.query.should.be.ok
+          app.use.should.be.ok
+          srv.close.should.be.ok
+      pgrest.use fake-plugin
+      _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
+      _srv.close!
+      done!
