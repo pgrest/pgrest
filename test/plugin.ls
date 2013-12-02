@@ -95,3 +95,13 @@ describe 'Plugin', ->
       _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
       _srv.close!
       done!
+    .. 'should be able to hook create server.', (done) ->
+      fake-plugin = do
+        isactive: -> true
+        posthook-cli-create-server: (opts, srv) ->
+          opts.should.be.deep.eq testopts
+          srv.close.should.be.ok
+      pgrest.use fake-plugin
+      _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
+      _srv.close!
+      done!
