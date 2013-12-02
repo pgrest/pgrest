@@ -70,5 +70,16 @@ describe 'Plugin', ->
           opts.should.be.deep.eq testopts
           plx.query.should.be.ok
       pgrest.use fake-plugin
-      <- pgrest.cli! testopts, {}, [], null
+      _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
+      _srv.close!
+      done!
+    .. 'should be able to hook app creating.', (done) ->
+      fake-plugin = do
+        isactive: -> true
+        posthook-cli-create-app: (opts, app) ->
+          opts.should.be.deep.eq testopts
+          app.use.should.be.ok
+      pgrest.use fake-plugin
+      _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
+      _srv.close!
       done!
