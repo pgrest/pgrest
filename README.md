@@ -51,33 +51,6 @@ The parameter is similar to [MongoLab's REST API](https://support.mongolab.com/e
 
     echo '{"id": 5,"info": {"counter":5} }' | curl -D - -H 'Content-Type: application/json' -X POST -d @- http://localhost:3000/collections/foo
 
-# Socket.io
-
-PgREST can handle socket.io connection with the `--websocket` flag:
-
-    pgrest --db test --websocket
-
-You can connect to PgREST with socket.io-client.
-
-All REST API is exposed to socket.io client as well; see [test](test/socket.ls) for usage.
-
-    <script src="http://HOST:PORT/socket.io/socket.io.js"></script>
-    <script>
-    var socket = io.connect('http://HOST:PORT');
-    socket.on("complete", function (data) {
-      // data = REST API return value
-    });
-    socket.emit("GET:foo");
-    </script>
-    
-More importantly, the socket.io client can subscribe to a collection. Any new item being inserted into the collection will notify the client.
-
-    var socket = io.connect('http://HOST:PORT');
-    s.on("CHANNEL:foo", function (data) {
-      // called every time something is inserted into foo
-    });
-    s.emit("SUBSCRIBE:foo");
-
 # Developing
 
 ## Runing tests:

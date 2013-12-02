@@ -49,7 +49,6 @@ export function get-opts
     prefix: argv.prefix or cfg.prefix or "/collections"
     conString: get_db_conn!
     meta: cfg.meta or {}
-    auth: cfg.auth or {}
     schema: argv.schema or cfg.dbschema or 'public'
     boot: argv.boot or false
     cors: argv.cors or false
@@ -57,28 +56,23 @@ export function get-opts
     app: argv.app or cfg.appname or null
     websocket: argv.websocket or false
     argv: argv
+    cfg: cfg
 
-mk-pgparam = (enabled_auth, cookiename)->
-  pgparam = (req, res, next) ->
-    req.pgparam = {}
-    if enabled_auth
-      if req.isAuthenticated!
-        winston.info "#{req.path} user is authzed. init db sesion"
-        req.pgparam.auth = req.user
-      else
-        winston.info "#{req.path} user is not authzed. reset db session"
-        req.pgparam = {}
+pgparam-init = (req, res, next) ->
+  req.pgparam = {}
+  next!
 
+pgparam-session = (cookiename)->
+  (req, res, next) ->
     if cookiename?
       req.pgparam.session = req.cookies[cookiename]
     next!
-  pgparam
 
 export function cli(__opts, use, middleware, bootstrap, cb)
-
   if !Object.keys __opts .length
     __opts = get-opts!
   opts = ensured-opts __opts
+  pgrest.init-plugins! opts
 
   #@FIXME: not test yet.
   if not bootstrap? and opts.app?
@@ -91,6 +85,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
       (_, cb) -> cb!
 
   plx <- pgrest.new opts.conString, {opts.meta}
+  pgrest.invoke-hook! \posthook-cli-create-plx, opts, plx
 
   {mount-default,mount-auth,with-prefix} = pgrest.routes!
 
@@ -101,6 +96,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   express = try require \express
   throw "express required for starting server" unless express
   app = express!
+  pgrest.invoke-hook! \posthook-cli-create-app, opts, app
 
   app.use express.json!
   for p in use
@@ -113,35 +109,20 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     require! cors
     middleware.unshift cors!
 
+  middleware.push pgparam-init
   if opts.cookiename
-    middleware.push mk-pgparam opts.auth.enable, opts.cookiename
+    middleware.push pgparam-session opts.cookiename
 
-  if opts.auth.enable
-    require! passport
-    app.use express.cookieParser!
-    app.use express.bodyParser!
-    app.use express.methodOverride!
-    app.use express.session secret: 'test'
-    app.use passport.initialize!
-    app.use passport.session!
-    mount-auth plx, app, middleware, opts
-
+  pgrest.invoke-hook! \prehook-cli-mount-default, opts, plx, app, middleware
   cols <- mount-default plx, opts.schema, with-prefix opts.prefix, (path, r) ->
     args = [path] ++ middleware ++ r
     app.all ...args
 
   server = http.createServer app
-
-  if opts.websocket
-    {mount-socket} = pgrest.socket!
-    
-    io = try require 'socket.io'
-    throw "socket.io required for starting server" unless io
-    io = io.listen server
-    io.set "log level", 1
-    cols <- mount-socket plx, opts.schema, io
+  pgrest.invoke-hook! \posthook-cli-create-server, opts, server
 
   <- server.listen opts.port, opts.host, 511
+  pgrest.invoke-hook! \posthook-cli-server-listen, opts, plx, app, server
   winston.info "Available collections:\n#{ cols.sort! * ' ' }"
   winston.info "Serving `#{opts.conString}` on http://#{opts.host}:#{opts.port}#{opts.prefix}"
   if cb
