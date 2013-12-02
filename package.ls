@@ -29,7 +29,7 @@ dependencies:
   trycatch: \1.0.x
   plv8x: \0.6.x
   cors: \2.1.x
-  \connect-csv : \*
+  \connect-csv : \0.0.x
   winston: \~0.7.2
   async: \0.2.x
 peerDependencies:

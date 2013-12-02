@@ -1,3 +1,7 @@
+0.1.0 / 2013-12-1
+  * plugin infrastructure
+  * support l=-1 for unlimited entries
+
 0.0.8 / 2013-10-28
   * view creation from metadoc
   * $matches and $matchesCase operators
