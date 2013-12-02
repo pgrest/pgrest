@@ -1,6 +1,7 @@
 should = (require \chai).should!
+{provide-dbconn} = require \./testlib
 
-var pgrest
+var pgrest, testopts
 
 unload-pgrest = ->
   delete require.cache[require.resolve \../lib]
@@ -38,6 +39,9 @@ describe 'Plugin', ->
   beforeEach (done) ->
     unload-pgrest!
     pgrest := require \../
+    getopts = pgrest.get-opts!
+    testopts := getopts!
+    testopts.conString = provide-dbconn!
     done!
   describe 'should be able to hook cli.', -> ``it``
     .. 'should be able to hook option processing.', (done) ->
@@ -58,4 +62,13 @@ describe 'Plugin', ->
       pgrest.use fake-plugin
       pgrest.init-plugins! null
       fake-plugin.initialized.should.be.ok
+      done!
+    .. 'should be able to hook plx creating.', (done) ->
+      fake-plugin = do
+        isactive: -> true
+        posthook-cli-create-plx: (opts, plx) ->
+          opts.should.be.deep.eq testopts
+          plx.query.should.be.ok
+      pgrest.use fake-plugin
+      <- pgrest.cli! testopts, {}, [], null
       done!
