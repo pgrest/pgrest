@@ -53,7 +53,6 @@ export function get-opts
     boot: argv.boot or false
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
-    websocket: argv.websocket or false
     argv: argv
     cfg: cfg
 
