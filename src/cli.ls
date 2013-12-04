@@ -19,6 +19,9 @@ ensured-opts = ->
   it
 
 export function get-opts
+  parse-pluginsargv = ->
+    if it
+      it \ ''
   {argv} = require \optimist
   if argv.version
     {version} = require require.resolve \../package.json
@@ -53,6 +56,7 @@ export function get-opts
     boot: argv.boot or false
     cors: argv.cors or false
     cookiename: argv.cookiename or cfg.cookiename or null
+    plugins: parse-pluginsargv argv['with-plugins'] or cfg.with-plugins or []
     argv: argv
     cfg: cfg
 
@@ -70,6 +74,11 @@ export function cli(__opts, use, middleware, bootstrap, cb)
   if !Object.keys __opts .length
     __opts = get-opts!
   opts = ensured-opts __opts
+  for plugin-name in opts.plugins
+    modname = "pgrest-#plugin-name"
+    plugin = try require modname
+    throw "#modname is required!"  unless plugin
+    pgrest.use plugin
   pgrest.init-plugins! opts
 
   if \function isnt typeof bootstrap
