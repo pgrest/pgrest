@@ -22,6 +22,20 @@ PostgreSQL 9.0 is required; we recommend using 9.2 or later.
 
 You need to install the `plv8js` extension for PostgreSQL.  If you're on OS X, [Postgres.app](http://postgresapp.com) comes with it pre-installed.  Otherwise, see [Installation](https://github.com/clkao/pgrest/wiki/Installation) for details.
 
+After you inestall, create the `plv8` extension
+
+    psql -U <user> -c "create extension plv8"
+
+If you got error message as below:
+
+    ERROR:  could not load library "/Applications/Postgres.app/Contents/MacOS/lib/plv8.so": dlopen(/Applications/Postgres.app/Contents/MacOS/lib/plv8.so, 10): Library not loaded: /usr/local/lib/libv8.dylib
+    Referenced from: /Applications/Postgres.app/Contents/MacOS/lib/plv8.so
+    Reason: image not found
+
+Please download the version after version `9.2.4.3`
+
+[PostgresApp release notes](https://github.com/PostgresApp/PostgresApp/releases)
+
 Once the extension is installed, simply use `npm` to install pgrest:
 
     % npm i -g pgrest
