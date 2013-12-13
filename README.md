@@ -22,7 +22,7 @@ PostgreSQL 9.0 is required; we recommend using 9.2 or later, and nodejs `0.10.x`
 
 You need to install the `plv8js` extension for PostgreSQL.  If you're on OS X, [Postgres.app](http://postgresapp.com) comes with it pre-installed.  Otherwise, see [Installation](https://github.com/clkao/pgrest/wiki/Installation) for details.
 
-After you inestall, create the `plv8` extension
+After you install, create the `plv8` extension
 
     psql -U <user> -c "create extension plv8"
 
