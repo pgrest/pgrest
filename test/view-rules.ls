@@ -1,7 +1,6 @@
-should = (require \chai).should!
-{mk-pgrest-fortest} = require \./testlib
+{mk-pgrest-fortest,create-test-table,cleanup-test-table} = require \./testlib
 
-var _plx, plx
+var plx
 describe 'Protected resources', ->
   @timeout 10000ms
   beforeEach (done) ->
@@ -18,20 +17,12 @@ describe 'Protected resources', ->
         ]
 
     plx := _plx
-    #@XXXX need to remove pgrest_boot
-    <- plx.query """
-    DROP TABLE IF EXISTS pgrest_test cascade;
-    CREATE TABLE pgrest_test (
-        field text not null primary key,
-        value text[] not null,
-        last_update timestamp
-    );
-    """
+    <- create-test-table plx
     pgrest = require \..
     <- pgrest.bootstrap plx, \dummy, process.cwd! + \/test/dummy.json
     done!
   afterEach (done) ->
-    <- plx.query "DROP TABLE IF EXISTS pgrest_test cascade;"
+    <- cleanup-test-table plx
     done!
   describe 'creates view' (,)-> it
     .. 'should have view', (done) ->
@@ -52,3 +43,45 @@ describe 'Protected resources', ->
         * field: \a, value: <[a b]>
       ], _, -> it.should.match /403/; done!
       it.should.eq null
+
+describe 'Protected resources', ->
+  @timeout 10000ms
+  beforeEach (done) ->
+    _plx <- mk-pgrest-fortest meta:
+      pgrest_protected:
+        as: 'pgrest_test'
+        rules: [
+          * name: \pgrest_update
+            event: \insert
+            type: \also
+            command: """
+              SELECT ~> $$throw 403 unless require('pgrest').pgrest_param_get('auth') is 'secret'$$
+            """
+        ]
+
+    plx := _plx
+    <- create-test-table plx
+    pgrest = require \..
+    <- pgrest.bootstrap plx, \dummy, process.cwd! + \/test/dummy.json
+    done!
+  afterEach (done) ->
+    #<- cleanup-test-table plx
+    done!
+  describe 'simple view is updatable' (,)-> it
+    .. 'denied by default', (done) ->
+      <- plx.insert collection: \pgrest_protected, $: [
+        * field: \a, value: <[a b]>
+      ], _, -> it.should.match /403/; done!
+      it.should.eq null
+    .. 'allowed with secret key', (done) ->
+      rows <- plx.query "select version()"
+      [_, pg_version] = rows.0.version.match /^PostgreSQL ([\d\.]+)/
+      if pg_version < \9.3.0
+        it.skip 'skipped for < 9.3', ->
+        return done!
+
+      res <- plx.insert collection: \pgrest_protected, pgparam: {auth: \secret}, $: [
+        * field: \a, value: <[a b]>
+      ]
+      res.should.be.deep.eq [1]
+      done!
