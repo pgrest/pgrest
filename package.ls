@@ -27,7 +27,7 @@ engines: {node: '*'}
 dependencies:
   optimist: \0.6.x
   trycatch: \1.0.x
-  plv8x: \0.6.x
+  plv8x: '>= 0.6.3'
   cors: \2.1.x
   \connect-csv : \0.0.x
   winston: \~0.7.2
