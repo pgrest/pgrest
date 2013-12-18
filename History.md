@@ -1,3 +1,6 @@
+0.1.1 / 2013-12-18
+  * update plv8x so --client is more reentrant-safe
+
 0.1.0 / 2013-12-1
   * plugin infrastructure
   * support l=-1 for unlimited entries
