@@ -13,13 +13,14 @@ describe 'Select', ->
     CREATE TABLE pgrest_test (
         field text not null primary key,
         value text[] not null,
+        num integer not null,
         last_update timestamp
     );
-    INSERT INTO pgrest_test (field, value, last_update) values('a', '{0.0.1}', NOW());
-    INSERT INTO pgrest_test (field, value, last_update) values('b', '{0.0.2}', NOW());
-    INSERT INTO pgrest_test (field, value, last_update) values('c', '{0.0.3}', NOW());
-    INSERT INTO pgrest_test (field, value, last_update) values('d', '{0.0.4}', NOW());
-    INSERT INTO pgrest_test (field, value, last_update) values('e', '{0.0.4}', NOW());
+    INSERT INTO pgrest_test (field, value, num, last_update) values('a', '{0.0.1}', 1, NOW());
+    INSERT INTO pgrest_test (field, value, num, last_update) values('b', '{0.0.2}', 2, NOW());
+    INSERT INTO pgrest_test (field, value, num, last_update) values('c', '{0.0.3}', 3, NOW());
+    INSERT INTO pgrest_test (field, value, num, last_update) values('d', '{0.0.4}', 4, NOW());
+    INSERT INTO pgrest_test (field, value, num, last_update) values('e', '{0.0.4}', 5, NOW());
     select pgrest_boot('{}');
     """
     done!
@@ -45,6 +46,32 @@ describe 'Select', ->
       q = [collection: \pgrest_test, q: {value:'{0.0.4}'}]
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
       res.paging.count.should.eq 2
+
+      q = [collection: \pgrest_test, q: {num: {$gt: 3}}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 2
+
+      q = [collection: \pgrest_test, q: {num: {$gte: 3}}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 3
+
+      q = [collection: \pgrest_test, q: {num: {$lt: 3}}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 2
+
+      q = [collection: \pgrest_test, q: {num: {$lte: 3}}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 3
+
+      q = [collection: \pgrest_test, q: {field: {$matches: 'A'}}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 1
+      res.entries.0.field.should.eq 'a'
+
+      q = [collection: \pgrest_test, q: {field: {$matchesCase: 'a'}}]
+      [pgrest_select:res] <- plx.query """select pgrest_select($1)""", q
+      res.paging.count.should.eq 1
+      res.entries.0.field.should.eq 'a'
       done!
     .. 'should only return the result count for this query if c is given.', (done) ->
       [pgrest_select:res] <- plx.query """select pgrest_select($1)""", [collection: \pgrest_test, c:true]
