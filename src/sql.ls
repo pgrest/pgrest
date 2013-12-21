@@ -55,9 +55,15 @@ export function test(model, key, expr)
       | \$lt
           res = evaluate model, ref
           "(#key < #res)"
+      | \$lte
+          res = evaluate model, ref
+          "(#key <= #res)"
       | \$gt
           res = evaluate model, ref
           "(#key > #res)"
+      | \$gte
+          res = evaluate model, ref
+          "(#key >= #res)"
       | \$matches
           res = evaluate model, ref
           "(#key ~* #res)"

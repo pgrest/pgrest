@@ -4,7 +4,7 @@ exports.new = (conString, config, cb) ->
   if typeof conString is \string
     conString = "localhost/#conString" unless conString is // / //
     conString = "tcp://#conString"     unless conString is // :/ //
-  plx <- plv8x.new conString
+  plx <- plv8x.new conString, {config.client}
   do-import = (cb) ->
     next <- plx.import-bundle-funcs \pgrest require.resolve(\../package.json)
     <- next!
