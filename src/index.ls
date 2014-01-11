@@ -244,6 +244,7 @@ function build_rules(plx, cb)
             DO #{type} (#{command});
         """, (err) -> console.log err
         done!
+  return cb! unless allrules.length
   <- async.waterfall allrules.reduce (++)
   cb!
 
@@ -253,6 +254,7 @@ function build_views(plx, cb)
     (done) ->
       <- plx.query """CREATE OR REPLACE view #name AS #source;""" -> console.log \err it
       done!
+  return cb! unless views.length
   err <- async.waterfall views
   cb!
 
