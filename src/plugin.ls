@@ -22,7 +22,7 @@ ensured-plugin = ->
   for jsname, v of it
     if typeof v == \function
       lsfnname = camel2dash jsname
-      if lsfnname in VALIDE_PLUGIN_FUNNAMES
+      if lsfnname in VALIDE_PLUGIN_FUNNAMES or v.$plv8x?
         continue
       unless lsfnname in VALIDE_HOOKNAMES
         errs.push "- #lsfnname"
