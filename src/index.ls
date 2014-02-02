@@ -267,6 +267,8 @@ export pgrest_boot = boot
 pgrest_boot.$plv8x = '(plv8x.json):boolean'
 pgrest_boot.$bootstrap = true
 
+export context = -> pgrest
+
 const SQL_PrimaryFieldInfo = """
 SELECT t.table_schema || '.' || t.table_name AS key,
        kcu.constraint_name AS constraint,
