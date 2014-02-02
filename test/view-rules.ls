@@ -1,5 +1,13 @@
 {mk-pgrest-fortest,create-test-table,cleanup-test-table} = require \./testlib
 
+function skip_unless_pg93(plx, done, cb)
+  rows <- plx.query "select version()"
+  [_, pg_version] = rows.0.version.match /^PostgreSQL ([\d\.]+)/
+  if pg_version < \9.3.0
+    it.skip 'skipped for < 9.3', ->
+    return done!
+  cb!
+
 var plx
 describe 'Protected resources', ->
   @timeout 10000ms
@@ -39,11 +47,7 @@ describe 'Protected resources', ->
       res.0.pgrest_select.paging.count.should.eql 1
       done!
     .. 'should throw for protected resources', (done) ->
-      rows <- plx.query "select version()"
-      [_, pg_version] = rows.0.version.match /^PostgreSQL ([\d\.]+)/
-      if pg_version < \9.3.0
-        it.skip 'skipped for < 9.3', ->
-        return done!
+      <- skip_unless_pg93 plx, done
 
       <- plx.insert collection: \pgrest_protected, $: [
         * field: \a, value: <[a b]>
@@ -75,22 +79,13 @@ describe 'Protected resources', ->
     done!
   describe 'simple view is updatable' (,)-> it
     .. 'denied by default', (done) ->
-      rows <- plx.query "select version()"
-      [_, pg_version] = rows.0.version.match /^PostgreSQL ([\d\.]+)/
-      if pg_version < \9.3.0
-        it.skip 'skipped for < 9.3', ->
-        return done!
-
+      <- skip_unless_pg93 plx, done
       <- plx.insert collection: \pgrest_protected, $: [
         * field: \a, value: <[a b]>
       ], _, -> it.should.match /403/; done!
       it.should.eq null
     .. 'allowed with secret key', (done) ->
-      rows <- plx.query "select version()"
-      [_, pg_version] = rows.0.version.match /^PostgreSQL ([\d\.]+)/
-      if pg_version < \9.3.0
-        it.skip 'skipped for < 9.3', ->
-        return done!
+      <- skip_unless_pg93 plx, done
       res <- plx.insert collection: \pgrest_protected, pgparam: {auth: \secret}, $: [
         * field: \a, value: <[a b]>
       ]
