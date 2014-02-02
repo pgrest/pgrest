@@ -1,3 +1,4 @@
 {
-    "main": "dummy.js"
+    "name": "dummy",
+    "main": "dummy/dummy.js"
 }

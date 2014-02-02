@@ -101,3 +101,57 @@ describe 'Protected resources', ->
       , _, -> it.should.match /403/; done!
       console.log "not supposed to be here"
       res.should.be.null!
+
+describe 'Protected resources via dummy', ->
+  @timeout 10000ms
+  beforeEach (done) ->
+    _plx <- mk-pgrest-fortest authkey: \secret, meta:
+      pgrest_protected:
+        as: 'pgrest_test'
+        rules: [
+          * name: \pgrest_insert
+            event: \insert
+            type: \also
+            command: """
+              SELECT ~> $$throw 403 unless require('dummy').test!$$
+            """
+          * name: \pgrest_update
+            event: \update
+            type: \also
+            command: """
+              SELECT ~> $$throw 403 unless require('dummy').test!$$
+            """
+          * name: \pgrest_delete
+            event: \delete
+            type: \also
+            command: """
+              SELECT ~> $$throw 403 unless require('dummy').test!$$
+            """
+        ]
+
+    plx := _plx
+    <- create-test-table plx
+    pgrest = require \..
+    <- pgrest.bootstrap plx, \dummy, process.cwd! + \/test/dummy.json
+    done!
+  afterEach (done) ->
+    #<- cleanup-test-table plx
+    done!
+  describe 'simple view is updatable' (,)-> it
+    .. 'denied by default', (done) ->
+      <- skip_unless_pg93 plx, done
+      <- plx.insert collection: \pgrest_protected, $: [
+        * field: \a, value: <[a b]>
+      ], _, -> it.should.match /403/; done!
+      it.should.eq null
+    .. 'allowed with secret key', (done) ->
+      <- skip_unless_pg93 plx, done
+      res <- plx.insert collection: \pgrest_protected, pgparam: {auth: \secret}, $: [
+        * field: \a, value: <[a b]>
+      ]
+      res.should.be.deep.eq [1]
+      res <- plx.upsert collection: \pgrest_protected, pgparam: {auth: \wrong}, q: {field: \a}, $: $set:
+        value: <[c d]>
+      , _, -> it.should.match /403/; done!
+      console.log "not supposed to be here"
+      res.should.be.null!
