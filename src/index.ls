@@ -1,4 +1,5 @@
 require! plv8x
+
 exports.new = (conString, config, cb) ->
   throw "Expected: new(dsn, cb) where dsn is 'db', 'host/db' or 'tcp://host/db'" unless conString
   if typeof conString is \string
@@ -268,6 +269,8 @@ pgrest_boot.$plv8x = '(plv8x.json):boolean'
 pgrest_boot.$bootstrap = true
 
 export context = -> pgrest
+
+export define-schema = plv8x.define-schema
 
 const SQL_PrimaryFieldInfo = """
 SELECT t.table_schema || '.' || t.table_name AS key,
