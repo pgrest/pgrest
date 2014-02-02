@@ -61,8 +61,14 @@ describe 'Protected resources', ->
       pgrest_protected:
         as: 'pgrest_test'
         rules: [
-          * name: \pgrest_update
+          * name: \pgrest_insert
             event: \insert
+            type: \also
+            command: """
+              SELECT ~> $$throw 403 unless require('pgrest').pgrest_param_get('auth') is 'secret'$$
+            """
+          * name: \pgrest_update
+            event: \update
             type: \also
             command: """
               SELECT ~> $$throw 403 unless require('pgrest').pgrest_param_get('auth') is 'secret'$$
@@ -90,4 +96,8 @@ describe 'Protected resources', ->
         * field: \a, value: <[a b]>
       ]
       res.should.be.deep.eq [1]
-      done!
+      res <- plx.upsert collection: \pgrest_protected, pgparam: {auth: \wrong}, q: {field: \a}, $: $set:
+        value: <[c d]>
+      , _, -> it.should.match /403/; done!
+      console.log "not supposed to be here"
+      res.should.be.null!
