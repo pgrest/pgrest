@@ -270,7 +270,7 @@ pgrest_boot.$bootstrap = true
 
 export context = -> pgrest
 
-export define-schema = plv8x.define-schema
+export util = plv8x.util
 
 const SQL_PrimaryFieldInfo = """
 SELECT t.table_schema || '.' || t.table_name AS key,
