@@ -36,8 +36,8 @@ export function get-opts
   ## Helpers
   # split argv into an Array
   parse-pluginsargv = ->
-    if typeof it == "string"
-      it \ ''
+    return it / ' ' if typeof it is \string
+    return it if typeof it is \object
 
   # get db connecting string
   get_db_conn = ->
