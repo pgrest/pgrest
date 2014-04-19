@@ -23,36 +23,40 @@ export function get-opts
   /*
   Parse options from argv, config file or default setting (hard-code)
   Priority: argv -> config file -> default setting
+
+  for all parameters' detail, please go to wiki:
+  https://github.com/pgrest/pgrest/wiki/CLI-Parameters
   */
 
   # first time parsing for obtaining config file content
   {argv} = require \optimist
-
-  if argv.config
-    cfg = require path.resolve "#{argv.config}"
-  else
-    cfg = {}
+  cfg = if argv.config then require path.resolve "#{argv.config}" else {}
 
   ## Helpers
   # split argv into an Array
   parse-pluginsargv = ->
-    return it / ' ' if typeof it is \string
-    return it if typeof it is \object
+    switch typeof it
+      case \string then it / ' '
+      case \object then it
 
-  # get db connecting string
+  # get db connecting string 
   get_db_conn = ->
     if cfg.dbconn and cfg.dbname
+      # if there are \dbconn and \dbname in config file
       conString = "#{cfg.dbconn}/#{cfg.dbname}"
     else
+      # or just from argv or environment variables
       conString = argv.db \
         or process.env['PLV8XCONN'] \
         or process.env['PLV8XDB'] \
         or process.env.TESTDBNAME \
         or process.argv?2
+
     if argv.pgsock
       conString = do
         host: argv.pgsock
         database: conString
+
     return conString
 
   # second time parsing with the full option list
