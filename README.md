@@ -59,7 +59,7 @@ You can now access foo content at `http://127.0.0.1:3000/collections/foo`
     curl -g 'http://127.0.0.1:3000/collections/foo?q={"tags":{"$contains":"foo"}}'
 
 
-The parameter is similar to [MongoLab's REST API](https://support.mongolab.com/entries/20433053-rest-api-for-mongodb) for listing documents.
+The parameter is similar to [MongoLab's REST API](http://docs.mongolab.com/restapi/) for listing documents.
 
 Note that if you use `curl`, you should probably use `-g` to prevent curl from expanding `{}`.
 
