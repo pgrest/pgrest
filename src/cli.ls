@@ -3,6 +3,7 @@ require! http
 require! winston
 pgrest = require \..
 
+
 ensured-opts = ->
   unless it.conString
     winston.error "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
@@ -19,19 +20,26 @@ ensured-opts = ->
   it
 
 export function get-opts
-  parse-pluginsargv = ->
-    if it
-      it \ ''
+  /*
+  Parse options from argv, config file or default setting (hard-code)
+  Priority: argv -> config file -> default setting
+  */
+
+  # first time parsing for obtaining config file content
   {argv} = require \optimist
-  if argv.version
-    {version} = require require.resolve \../package.json
-    winston.info "PgRest v#{version}"
-    process.exit 0
 
   if argv.config
     cfg = require path.resolve "#{argv.config}"
   else
     cfg = {}
+
+  ## Helpers
+  # split argv into an Array
+  parse-pluginsargv = ->
+    if typeof it == "string"
+      it \ ''
+
+  # get db connecting string
   get_db_conn = ->
     if cfg.dbconn and cfg.dbname
       conString = "#{cfg.dbconn}/#{cfg.dbname}"
@@ -46,17 +54,66 @@ export function get-opts
         host: argv.pgsock
         database: conString
     return conString
+
+  # second time parsing with the full option list
+  {argv, showHelp} = require \optimist
+    .option \help do
+      description: "Show this help"
+    .option \version do
+      description: "Show version info"
+    .option \host do
+      default: cfg.host or "127.0.0.1"
+      description: "the host for PgREST"
+    .option \port do
+      default: cfg.port or "3000"
+      description: "the port for PgREST"
+    .option \prefix do
+      default: cfg.prefix or "/collections"
+      description: ""
+    .option \meta do
+      default: cfg.meta or {}
+      description: ""
+    .option \schema do
+      default: cfg.dbschema or \public
+      description: ""
+    .option \boot do
+      default: cfg.boot or false
+      description: ""
+    .option \cors do
+      default: cfg.cors or false
+      description: ""
+    .option \cookiename do
+      default: cfg.cookiename or null
+      description: ""
+    .option \with-plugins do
+      default: cfg.with-plugins or []
+      description: ""
+    .option \db do
+      default: ""
+      description: ""
+
+  # if 'version' appears, show up version information
+  if argv.version
+    {version} = require require.resolve \../package.json
+    winston.info "PgRest v#{version}"
+    process.exit 0
+
+  # if 'help' appears, show up the usage document
+  if argv.help
+    showHelp!
+    process.exit 0
+
   opts = do
-    host: argv.host or cfg.host or "127.0.0.1"
-    port: argv.port or cfg.port or "3000"
-    prefix: argv.prefix or cfg.prefix or "/collections"
+    host: argv.host
+    port: argv.port
+    prefix: argv.prefix
     conString: get_db_conn!
-    meta: cfg.meta or {}
-    schema: argv.schema or cfg.dbschema or 'public'
-    boot: argv.boot or false
-    cors: argv.cors or false
-    cookiename: argv.cookiename or cfg.cookiename or null
-    plugins: parse-pluginsargv argv['with-plugins'] or cfg.with-plugins or []
+    meta: argv.meta
+    schema: argv.schema
+    boot: argv.boot
+    cors: argv.cors
+    cookiename: argv.cookiename
+    plugins: parse-pluginsargv argv['with-plugins']
     argv: argv
     cfg: cfg
 
