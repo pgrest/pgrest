@@ -19,7 +19,7 @@ ensured-opts = ->
     process.exit!
   it
 
-export function get-opts
+export function get-opts (argv = process.argv)
   /*
   Parse options from argv, config file or default setting (hard-code)
   Priority: argv -> config file -> default setting
@@ -46,7 +46,7 @@ export function get-opts
   program.option '--db [db]' 'conString'
   program.option '--pgsock [pgsock]' 'pg socket'
 
-  program.parse process.argv
+  program.parse argv
 
   ## Helpers
   # split argv into an Array

@@ -10,7 +10,7 @@ describe 'CLI', ->
     pgrest := require \..
     pgrest.should.be.ok
     getopts = pgrest.get-opts!
-    testopts = getopts!
+    testopts = getopts ""
     testopts.conString = provide-dbconn!
     _app, _plx, _srv <- pgrest.cli! testopts, {}, [], null
     app := _app
