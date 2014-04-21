@@ -3,6 +3,7 @@ require! http
 require! winston
 pgrest = require \..
 
+
 ensured-opts = ->
   unless it.conString
     winston.error "ERROR: Please set the PLV8XDB environment variable, or pass in a connection string as an argument"
@@ -18,46 +19,73 @@ ensured-opts = ->
     process.exit!
   it
 
-export function get-opts
-  parse-pluginsargv = ->
-    if it
-      it \ ''
-  {argv} = require \optimist
-  if argv.version
-    {version} = require require.resolve \../package.json
-    winston.info "PgRest v#{version}"
-    process.exit 0
+export function get-opts (argv = process.argv)
+  /*
+  Parse options from argv, config file or default setting (hard-code)
+  Priority: argv -> config file -> default setting
 
-  if argv.config
-    cfg = require path.resolve "#{argv.config}"
-  else
-    cfg = {}
+  for all parameters' detail, please go to wiki:
+  https://github.com/pgrest/pgrest/wiki/CLI-Parameters
+  */
+  require! program: commander
+
+  # add options here
+  # format: commander.option <long, short option> [description] [parser] [default]
+  program.version "PgRest v" + (require require.resolve \../package.json).version
+
+  program.option '--config [config-file]' 'config file' ((cfg) -> require path.resolve "#{cfg}"), {}
+  program.option '--host [host]' 'Host'
+  program.option '--port [port]' 'Port'
+  program.option '--prefix [prefix]' 'Prefix for endpoints'
+  program.option '--meta [meta]' 'metadata'
+  program.option '--schema [schema]' 'Schema information'
+  program.option '--boot' 'boot'
+  program.option '--cors' 'cors'
+  program.option '--cookiename [cookiename]' 'cookie'
+  program.option '--with-plugins [plugings]' 'plugins' parse-pluginsargv
+  program.option '--db [db]' 'conString'
+  program.option '--pgsock [pgsock]' 'pg socket'
+
+  program.parse argv
+
+  ## Helpers
+  # split argv into an Array
+  parse-pluginsargv = ->
+    switch typeof it
+      case \string then it / ' '
+      case \object then it
+
+  # get db connecting string 
   get_db_conn = ->
-    if cfg.dbconn and cfg.dbname
-      conString = "#{cfg.dbconn}/#{cfg.dbname}"
-    else
-      conString = argv.db \
-        or process.env['PLV8XCONN'] \
-        or process.env['PLV8XDB'] \
-        or process.env.TESTDBNAME \
-        or process.argv?2
-    if argv.pgsock
-      conString = do
-        host: argv.pgsock
+    # retrieve conString from following locations
+    conString = program.db \
+      or process.env['PLV8XCONN'] \
+      or process.env['PLV8XDB'] \
+      or process.env.TESTDBNAME \
+      or if cfg.dbconn and cfg.dbname then "#{cfg.dbconn}/#{cfg.dbname}" else ""
+
+    # if pgsock option is given, return options with host and database
+    pgsock = (conString) ->
+      * host: program.pgsock
         database: conString
-    return conString
+
+    return if program.pgsock then pgsock conString else conString
+
+  cfg = program.config
+
+
   opts = do
-    host: argv.host or cfg.host or "127.0.0.1"
-    port: argv.port or cfg.port or "3000"
-    prefix: argv.prefix or cfg.prefix or "/collections"
+    host: program.host or cfg.host or "127.0.0.1"
+    port: program.port or cfg.port or "3000"
+    prefix: program.prefix or cfg.prefix or "/collections"
     conString: get_db_conn!
-    meta: cfg.meta or {}
-    schema: argv.schema or cfg.dbschema or 'public'
-    boot: argv.boot or false
-    cors: argv.cors or false
-    cookiename: argv.cookiename or cfg.cookiename or null
-    plugins: parse-pluginsargv argv['with-plugins'] or cfg.with-plugins or []
-    argv: argv
+    meta: program.meta or cfg.meta or {}
+    schema: program.schema or cfg.dbschema or 'public'
+    boot: program.boot or cfg.boot or false
+    cors: program.cors or cfg.cors or false
+    cookiename: program.cookiename or cfg.cookiename or null
+    plugins: parse-pluginsargv program.withPlugins or cfg['with-plugins'] or []
+    argv: program
     cfg: cfg
 
 pgparam-init = (req, res, next) ->

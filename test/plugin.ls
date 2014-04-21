@@ -40,7 +40,7 @@ describe 'Plugin', ->
     unload-pgrest!
     pgrest := require \../
     getopts = pgrest.get-opts!
-    testopts := getopts!
+    testopts := getopts ""
     testopts.conString = provide-dbconn!
     done!
   describe 'should be able to hook cli.', -> ``it``

@@ -25,7 +25,7 @@
     "node": "*"
   },
   "dependencies": {
-    "optimist": "0.6.x",
+    "commander": "2.2.0",
     "trycatch": "1.0.x",
     "plv8x": ">= 0.6.3",
     "cors": "2.1.x",
