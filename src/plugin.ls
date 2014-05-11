@@ -37,18 +37,15 @@ export function use (plugin)
 
 export function init-plugins (opts)
   for plugin in used
-    if plugin.process-opts?
-      plugin.process-opts opts
+    plugin.process-opts? opts
     if plugin.isactive opts
-      if plugin.initialize?
-        plugin.initialize!
+      plugin.initialize?!
       loaded.push plugin
 
 export function invoke-hook (hookname, ...args)
   for plugin in loaded
     hook = plugin[normalized-hookname hookname]
-    if hook
-      hook ...args
+    hook? ...args
 
 dash2camel = -> it.replace /(?:^|\s)\S/g, -> it.toUpperCase!
 camel2dash = -> it.replace /([a-z\d])([A-Z])/g, '$1-$2' .toLowerCase!
