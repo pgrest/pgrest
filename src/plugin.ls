@@ -1,13 +1,13 @@
 used = []
 loaded = []
 
-VALIDE_PLUGIN_FUNNAMES = <[
+VALID_PLUGIN_FUNNAMES = <[
   process-opts
   isactive
   initialize
   ]>
 
-VALIDE_HOOKNAMES = <[
+VALID_HOOKNAMES = <[
   posthook-cli-create-plx
   posthook-cli-create-app
   prehook-cli-mount-default
@@ -22,9 +22,9 @@ ensured-plugin = ->
   for jsname, v of it
     if typeof v == \function
       lsfnname = camel2dash jsname
-      if lsfnname in VALIDE_PLUGIN_FUNNAMES or v.$plv8x?
+      if lsfnname in VALID_PLUGIN_FUNNAMES or v.$plv8x?
         continue
-      unless lsfnname in VALIDE_HOOKNAMES
+      unless lsfnname in VALID_HOOKNAMES
         errs.push "- #lsfnname"
 
   if errs.length > 0

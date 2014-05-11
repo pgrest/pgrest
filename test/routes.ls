@@ -49,7 +49,7 @@ describe 'Routing', ->
       cols <- mount-default plx, null, with-prefix '/collections', -> app.all.apply app, &
       done!
     describe 'GET /', -> ``it``
-      .. 'should list valide endpoints', (done) ->
+      .. 'should list valid endpoints', (done) ->
         (err, res) <- supertest app
           .get '/'
           .expect 'Content-Type' /json/
