@@ -136,6 +136,9 @@ export function cli(__opts, use, middleware, bootstrap, cb)
     else
       p
 
+  require! \connect-csv
+  app.use connect-csv
+
   if opts.cors
     require! cors
     middleware.unshift cors!

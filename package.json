@@ -7,7 +7,7 @@
   },
   "name": "pgrest",
   "description": "enable REST in postgres",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "lib/index.js",
   "bin": {
     "pgrest": "bin/pgrest"
@@ -29,7 +29,7 @@
     "trycatch": "1.0.x",
     "plv8x": ">= 0.6.3",
     "cors": "2.1.x",
-    "connect-csv": "0.0.x",
+    "connect-csv": "0.1.x",
     "winston": "~0.7.2",
     "async": "0.2.x"
   },
