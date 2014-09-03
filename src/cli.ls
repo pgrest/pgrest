@@ -137,7 +137,7 @@ export function cli(__opts, use, middleware, bootstrap, cb)
       p
 
   require! \connect-csv
-  app.use connect-csv
+  app.use connect-csv header: \guess
 
   if opts.cors
     require! cors

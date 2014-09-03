@@ -4,7 +4,7 @@ author:
   email: 'clkao@clkao.org'
 name: 'pgrest'
 description: 'enable REST in postgres'
-version: '0.1.2'
+version: '0.1.3'
 main: \lib/index.js
 bin:
   pgrest: 'bin/pgrest'
