@@ -38,11 +38,10 @@ export function with-prefix (prefix, cb)
     cb fullpath, route path, fn
 
 export function derive-type (content, type)
-  TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \plv8x.json
+  TypeMap = Boolean: \boolean, Number: \numeric, String: \text, Array: 'text[]', Object: \json
   if \Array is typeof! content
-    # XXX plv8x.json[] does not work
-    return ((TypeMap[typeof! content.0] || \plv8x.json) + '[]') - /^plv8x\./
-  TypeMap[typeof! content] || \plv8x.json
+    return ((TypeMap[typeof! content.0] || \json) + '[]')
+  TypeMap[typeof! content] || \json
 
 export function locate_record (plx, schema, name, id)
   collection = "#schema.#name"
