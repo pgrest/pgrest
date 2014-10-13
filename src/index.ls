@@ -249,7 +249,7 @@ function build_rules(plx, cb)
   <- async.waterfall allrules.reduce (++)
   cb!
 
-function build_views(plx, cb)
+export function build_views(plx, cb)
   views = for name, {as}:meta of plx.config.meta when as => let name
     source = build_view_source meta
     (done) ->
