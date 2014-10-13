@@ -21,7 +21,7 @@ scripts:
   """
   # this is probably installing from git directly, no lib.  assuming dev
   postinstall: """
-    if [ ! -e ./lib ]; then npm i LiveScript; lsc -bc -o lib src; fi
+    if [ ! -e ./lib ]; then npm i LiveScript@1.2.x; lsc -bc -o lib src; fi
   """
 engines: {node: '*'}
 dependencies:
