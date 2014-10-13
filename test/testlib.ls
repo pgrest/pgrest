@@ -5,6 +5,7 @@ export function provide-dbcfg()
   obj = {dbuser: process.env.TESTDBUSERNAME, dbname: process.env.TESTDBNAME}
 
 export function provide-dbconn()
+  return that if process.env.TESTDB
   cfg = provide-dbcfg!
   prefix = if cfg.dbuser
     then "#{cfg.dbuser}@"
